@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Aura Pay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030712;
+            --surface: #111827;
+            --primary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: #f3f4f6;
+            font-family: 'Outfit', sans-serif;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger);
+            margin-right: 8px;
+        }
+
+        .status-dot.online {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid #1f2937;
+            padding: 1.5rem;
+            border-radius: 16px;
+            animation: slideIn 0.3s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #9ca3af;
+            letter-spacing: 0.05em;
+        }
+
+        .value {
+            font-size: 1rem;
+            color: #fff;
+            margin-top: 4px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-APPROVED {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-REVIEW {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-REJECTED {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .risk-score {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            opacity: 0.1;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Aura Pay - Flux en temps réel</h1>
+        <div>
+            <span id="connStatus" class="status-dot"></span>
+            <span id="statusText">Déconnecté</span>
+        </div>
+    </header>
+
+    <div class="grid" id="auditList">
+        <!-- Les audits apparaîtront ici -->
+    </div>
+
+    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+    <script>
+        const auditList = document.getElementById('auditList');
+        const connStatus = document.getElementById('connStatus');
+        const statusText = document.getElementById('statusText');
+        const notifSound = document.getElementById('notifSound');
+
+        function connect() {
+            // Déterminer l'URL WebSocket
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/admin`;
+
+            const socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                connStatus.className = 'status-dot online';
+                statusText.textContent = 'Connecté (Live)';
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                addAuditCard(data);
+                notifSound.play().catch(() => { });
+            };
+
+            socket.onclose = () => {
+                connStatus.className = 'status-dot';
+                statusText.textContent = 'Déconnecté - Reconnexion...';
+                setTimeout(connect, 3000);
+            };
+        }
+
+        function addAuditCard(data) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="risk-score">${data.risk_score}</div>
+                <div class="card-header">
+                    <div>
+                        <div class="label">Client</div>
+                        <div class="value">${data.email}</div>
+                    </div>
+                    <span class="badge badge-${data.status}">${data.status}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <div class="label">Montant</div>
+                        <div class="value">${data.montant} €</div>
+                    </div>
+                    <div>
+                        <div class="label">Carte</div>
+                        <div class="value">${data.numero_carte_masque}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <div class="label">IP Address</div>
+                    <div class="value">${data.adresse_ip}</div>
+                </div>
+            `;
+            auditList.prepend(card);
+
+            // Limiter à 15 cartes
+            if (auditList.children.length > 15) {
+                auditList.removeChild(auditList.lastChild);
+            }
+        }
+
+        connect();
+    </script>
+</body>
+
+</html>

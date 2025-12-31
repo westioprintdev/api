@@ -1,7 +1,8 @@
 import os
 import ipaddress
-from typing import Optional
-from fastapi import FastAPI, HTTPException, Security, Depends
+from typing import Optional, List
+from fastapi import FastAPI, HTTPException, Security, Depends, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 from fastapi.security.api_key import APIKeyHeader, APIKey
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from starlette.status import HTTP_403_FORBIDDEN
@@ -17,14 +18,46 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# --- WebSocket Management ---
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception:
+                # Handle stale connections
+                continue
+
+manager = ConnectionManager()
+
 # --- Endpoints ---
 @app.get("/")
 async def root():
     return {
         "message": "Bienvenue sur l'API Professional Audit",
         "status": "online",
-        "documentation": "/docs"
+        "documentation": "/docs",
+        "checkout": "/checkout",
+        "admin_panel": "/panel"
     }
+
+@app.get("/checkout")
+async def get_checkout():
+    return FileResponse("checkout.html")
+
+@app.get("/panel")
+async def get_panel():
+    return FileResponse("panel.html")
 
 # --- Security ---
 async def get_api_key(
@@ -82,15 +115,32 @@ async def create_audit(
     api_key: APIKey = Depends(get_api_key)
 ):
     risk_score = calculate_risk(request.montant, request.adresse_ip)
-    
     status = "APPROVED" if risk_score < 40 else "REVIEW" if risk_score < 75 else "REJECTED"
     
-    return AuditResponse(
+    response_data = AuditResponse(
         email=request.email,
         risk_score=risk_score,
         status=status,
         message=f"Transaction traitée avec succès. Résultat: {status}"
     )
+
+    # Broadcast to admin panel
+    audit_data = request.dict()
+    audit_data["risk_score"] = risk_score
+    audit_data["status"] = status
+    await manager.broadcast(audit_data)
+    
+    return response_data
+
+@app.websocket("/ws/admin")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection alive
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 @app.get("/health")
 async def health_check():
