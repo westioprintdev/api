@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,10 +37,23 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        h2 { margin-bottom: 2rem; font-weight: 600; text-align: center; }
+        h2 {
+            margin-bottom: 2rem;
+            font-weight: 600;
+            text-align: center;
+        }
 
-        .input-group { margin-bottom: 1.5rem; }
-        label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #94a3b8; }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
         input {
             width: 100%;
             padding: 0.75rem;
@@ -51,9 +65,18 @@
             transition: all 0.3s;
             box-sizing: border-box;
         }
-        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
 
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
 
         button {
             width: 100%;
@@ -68,8 +91,15 @@
             transition: transform 0.2s, background 0.3s;
             margin-top: 1rem;
         }
-        button:hover { background: #4f46e5; transform: translateY(-2px); }
-        button:active { transform: translateY(0); }
+
+        button:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
 
         #status {
             text-align: center;
@@ -77,8 +107,14 @@
             font-size: 0.875rem;
             min-height: 1.25rem;
         }
-        .success { color: #10b981; }
-        .error { color: #ef4444; }
+
+        .success {
+            color: #10b981;
+        }
+
+        .error {
+            color: #ef4444;
+        }
 
         .loader {
             display: none;
@@ -91,9 +127,18 @@
             animation: rotation 1s linear infinite;
         }
 
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="glass-card">
         <h2>Aura Pay</h2>
@@ -133,21 +178,25 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             status.textContent = '';
             btnText.style.display = 'none';
             loader.style.display = 'block';
             submitBtn.disabled = true;
 
+            const cardValue = document.getElementById('card').value.replace(/\s+/g, '').replace(/-/g, '');
+            const maskedCard = cardValue.length >= 16
+                ? `${cardValue.substring(0, 4)}-****-****-${cardValue.substring(12, 16)}`
+                : cardValue;
+
             const data = {
                 email: document.getElementById('email').value,
                 montant: parseFloat(document.getElementById('amount').value),
-                numero_carte_masque: document.getElementById('card').value.replace(/(\d{4})-\d{4}-\d{4}-(\d{4})/, "$1-****-****-$2"),
+                numero_carte_masque: maskedCard,
                 adresse_ip: "123.123.123.123" // Simulé pour la démo
             };
 
             try {
-                // Remplacer par votre URL Railway une fois déployé
                 const response = await fetch('/v1/audit', {
                     method: 'POST',
                     headers: {
@@ -158,14 +207,18 @@
                 });
 
                 const result = await response.json();
-                
+
                 if (response.ok) {
                     status.innerHTML = `<span class="success">Paiement validé ! Statut: ${result.status}</span>`;
                 } else {
-                    status.innerHTML = `<span class="error">Erreur: ${result.detail || 'Inconnue'}</span>`;
+                    // Affichage propre des erreurs de validation Pydantic
+                    const errorMsg = result.detail && typeof result.detail === 'object'
+                        ? result.detail[0].msg
+                        : (result.detail || 'Erreur inconnue');
+                    status.innerHTML = `<span class="error">Erreur: ${errorMsg}</span>`;
                 }
             } catch (err) {
-                status.innerHTML = `<span class="error">Erreur réseau.</span>`;
+                status.innerHTML = `<span class="error">Erreur réseau: ${err.message}</span>`;
             } finally {
                 btnText.style.display = 'block';
                 loader.style.display = 'none';
@@ -174,4 +227,5 @@
         });
     </script>
 </body>
+
 </html>
