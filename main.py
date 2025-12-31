@@ -17,6 +17,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# --- Endpoints ---
+@app.get("/")
+async def root():
+    return {
+        "message": "Bienvenue sur l'API Professional Audit",
+        "status": "online",
+        "documentation": "/docs"
+    }
+
 # --- Security ---
 async def get_api_key(
     header_key: Optional[str] = Security(api_key_header)
