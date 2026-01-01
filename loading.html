@@ -55,8 +55,8 @@
 
     <script>
         const clientId = localStorage.getItem('aura_client_id');
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/client/${clientId}`);
+        const wsUrl = `wss://api-production-8591.up.railway.app/ws/client/${clientId}`;
+        const ws = new WebSocket(wsUrl);
 
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);

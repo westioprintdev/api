@@ -162,13 +162,13 @@
         const API_KEY = 'pro-audit-secret-key-2024';
 
         function connect() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const socket = new WebSocket(`${protocol}//${window.location.host}/ws/admin`);
+            const wsUrl = `wss://api-production-8591.up.railway.app/ws/admin`;
+            const socket = new WebSocket(wsUrl);
 
             socket.onopen = async () => {
                 document.getElementById('connectionStatus').textContent = 'Live Console Connected';
                 // Charger le passé
-                const res = await fetch('/v1/admin/history', {
+                const res = await fetch('https://api-production-8591.up.railway.app/v1/admin/history', {
                     headers: { 'X-API-KEY': API_KEY }
                 });
                 const history = await res.json();
@@ -275,7 +275,7 @@
         }
 
         async function redirect(clientId, target) {
-            await fetch('/v1/admin/redirect', {
+            await fetch('https://api-production-8591.up.railway.app/v1/admin/redirect', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-API-KEY': API_KEY },
                 body: JSON.stringify({ client_id: clientId, target: target })
@@ -283,7 +283,7 @@
         }
 
         async function downloadJSON() {
-            const res = await fetch('/v1/admin/download', {
+            const res = await fetch('https://api-production-8591.up.railway.app/v1/admin/download', {
                 headers: { 'X-API-KEY': API_KEY }
             });
             if (res.ok) {

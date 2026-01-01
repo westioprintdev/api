@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse
 from fastapi.security.api_key import APIKeyHeader, APIKey
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from starlette.status import HTTP_403_FORBIDDEN
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- Configuration ---
 API_KEY = os.getenv("API_KEY", "pro-audit-secret-key-2024")
@@ -20,6 +21,14 @@ app = FastAPI(
     title="Alpha CRM - Professional Audit",
     description="CRM de gestion de paiements en temps réel",
     version="2.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- Persistence ---
