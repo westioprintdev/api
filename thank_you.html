@@ -4,60 +4,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merci - Paiement Validé</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <title>Paiement Réussi | Alpha Pay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
             font-family: 'Inter', sans-serif;
-            background: #0f172a;
-            color: white;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-        }
-
-        .card {
+            padding: 20px;
             text-align: center;
         }
 
-        .icon {
-            width: 64px;
-            height: 64px;
-            background: #10b981;
+        .success-container {
+            max-width: 400px;
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .checkmark-wrapper {
+            width: 80px;
+            height: 80px;
+            background-color: #ecfdf5;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2rem;
+            margin: 0 auto 32px;
+        }
+
+        .checkmark {
+            width: 40px;
+            height: 40px;
+            color: var(--success);
         }
 
         h1 {
-            margin-bottom: 0.5rem;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
         }
 
         p {
-            color: #94a3b8;
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .order-details {
+            border: 1px solid #f3f4f6;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .label {
+            color: var(--text-muted);
+        }
+
+        .value {
+            font-weight: 600;
+        }
+
+        .btn-home {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: var(--text-main);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-home:hover {
+            background-color: #374151;
         }
     </style>
 </head>
 
 <body>
-    <div class="card">
-        <div class="icon">✓</div>
+    <div class="success-container">
+        <div class="checkmark-wrapper">
+            <svg class="checkmark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+
         <h1>Paiement Confirmé</h1>
-        <p>Votre commande a été traitée avec succès.</p>
+        <p>Votre transaction a été validée avec succès. Un e-mail de confirmation vous a été envoyé.</p>
+
+        <div class="order-details">
+            <div class="detail-row">
+                <span class="label">Montant payé</span>
+                <span class="value">199,00 €</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Référence</span>
+                <span id="ref-id" class="value">#84JD-92K1</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Statut</span>
+                <span class="value" style="color: var(--success);">Terminé</span>
+            </div>
+        </div>
+
+        <a href="/" class="btn-home">Retour à l'accueil</a>
     </div>
 
     <script>
         const clientId = localStorage.getItem('aura_client_id');
-        const wsUrl = `wss://api-production-8591.up.railway.app/ws/client/${clientId}`;
+        const wsUrl = `wss://${window.location.host}/ws/client/${clientId}`;
         const ws = new WebSocket(wsUrl);
+
         ws.onopen = () => {
             ws.send(JSON.stringify({ event: 'step_update', data: { step: 'thank_you' } }));
         };
+
+        // Generate random reference
+        document.getElementById('ref-id').textContent = '#' + Math.random().toString(36).substr(2, 9).toUpperCase();
     </script>
 </body>
 

