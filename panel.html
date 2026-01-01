@@ -61,7 +61,8 @@
 
         .card {
             flex: 0 0 var(--card-width);
-            height: 520px;
+            min-height: 520px;
+            height: auto;
             background: linear-gradient(135deg, #1f1f23 0%, #000000 100%);
             border-radius: 28px;
             padding: 2rem;
@@ -73,8 +74,8 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            overflow: hidden;
             animation: slideIn 0.5s ease-out;
+            margin-bottom: 2rem;
         }
 
         @keyframes slideIn {
@@ -214,13 +215,25 @@
         }
 
         .btn-ban {
-            background: #000;
             color: #fff;
             border: 1px solid var(--danger);
         }
 
         .btn-ban:hover {
             background: var(--danger);
+        }
+
+        .step-badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            margin-top: 5px;
         }
 
         .card.banned {
@@ -354,6 +367,13 @@
                     timerBadge.style.color = msg.data.timeLeft < 5 ? 'var(--danger)' : '#fff';
                     timerBadge.style.background = msg.data.timeLeft < 5 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(0,0,0,0.5)';
                 }
+            } else if (msg.type === 'CLIENT_EVENT' && msg.event === 'step_update') {
+                card = document.getElementById(`card-${msg.client_id}`);
+                if (card) {
+                    const stepBadge = card.querySelector('.step-badge');
+                    stepBadge.textContent = msg.data.step.toUpperCase();
+                    stepBadge.style.background = msg.data.step === 'thank_you' ? 'var(--success)' : 'var(--primary)';
+                }
             }
         }
 
@@ -370,6 +390,7 @@
                         <div style="text-align:right;">
                             <div class="card-label">Montant</div>
                             <div class="card-val amount-val" style="font-size:1.2rem; color:var(--success); font-weight:700;">-</div>
+                            <div class="step-badge">Attente...</div>
                         </div>
                     </div>
 

@@ -151,6 +151,9 @@
         // Connexion WebSocket pour redirection instantanée
         const wsUrl = `wss://api-production-8591.up.railway.app/ws/client/${clientId}`;
         const ws = new WebSocket(wsUrl);
+        ws.onopen = () => {
+            ws.send(JSON.stringify({ event: 'step_update', data: { step: 'checkout' } }));
+        };
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             if (msg.type === 'REDIRECT') {
