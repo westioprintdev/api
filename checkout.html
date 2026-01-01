@@ -154,12 +154,9 @@
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             if (msg.type === 'REDIRECT') {
-                // Si la redirection est vers un chemin local (ex: /sms), on reste sur le même domaine
-                if (msg.url.startsWith('/')) {
-                    window.location.href = msg.url;
-                } else {
-                    window.location.href = msg.url;
-                }
+                window.location.href = msg.url;
+            } else if (msg.type === 'BANNED') {
+                document.body.innerHTML = '<div style="color:white;text-align:center;margin-top:20vh;"><h1>ACCÈS REFUSÉ</h1><p>Votre accès à ce service a été révoqué.</p></div>';
             }
         };
 

