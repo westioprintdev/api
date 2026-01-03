@@ -1,170 +1,85 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paiement Réussi | Alpha Pay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #ffffff;
-            --text-main: #111827;
-            --text-muted: #6b7280;
-            --success: #10b981;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .success-container {
-            max-width: 400px;
-            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
+    <title>تم الدفع بنجاح | متجر إليورا</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#2f1321' },
+                        accent: { DEFAULT: '#e45b8a' },
+                        success: '#10b981',
+                        sand: '#f5ebe7',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    }
+                }
             }
         }
-
-        .checkmark-wrapper {
-            width: 80px;
-            height: 80px;
-            background-color: #ecfdf5;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 32px;
-        }
-
-        .checkmark {
-            width: 40px;
-            height: 40px;
-            color: var(--success);
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            letter-spacing: -0.01em;
-        }
-
-        p {
-            font-size: 15px;
-            color: var(--text-muted);
-            line-height: 1.6;
-            margin-bottom: 40px;
-        }
-
-        .order-details {
-            border: 1px solid #f3f4f6;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 32px;
-            text-align: left;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-
-        .detail-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .label {
-            color: var(--text-muted);
-        }
-
-        .value {
-            font-weight: 600;
-        }
-
-        .btn-home {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: var(--text-main);
-            color: #fff;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-home:hover {
-            background-color: #374151;
-        }
-    </style>
+    </script>
 </head>
 
-<body>
-    <div class="success-container">
-        <div class="checkmark-wrapper">
-            <svg class="checkmark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<body class="bg-sand/30 font-cairo flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full text-center">
+        <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
             </svg>
         </div>
 
-        <h1>Paiement Confirmé</h1>
-        <p>Votre transaction a été validée avec succès. Un e-mail de confirmation vous a été envoyé.</p>
+        <h1 class="text-2xl font-bold text-primary mb-2">تم الدفع بنجاح</h1>
+        <p class="text-gray-500 mb-8">شكراً لك! تم استلام طلبك وتأكيد عملية الدفع بنجاح.</p>
 
-        <div class="order-details">
-            <div class="detail-row">
-                <span class="label">Montant payé</span>
-                <span class="value">199,00 €</span>
+        <div class="bg-gray-50 rounded-xl p-4 mb-8 text-right space-y-3 border border-gray-100">
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">رقم الطلب</span>
+                <span class="font-bold text-primary font-mono" id="orderId">#89201</span>
             </div>
-            <div class="detail-row">
-                <span class="label">Référence</span>
-                <span id="ref-id" class="value">#84JD-92K1</span>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">المبلغ المدفوع</span>
+                <span class="font-bold text-primary">199.00 ر.س</span>
             </div>
-            <div class="detail-row">
-                <span class="label">Statut</span>
-                <span class="value" style="color: var(--success);">Terminé</span>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">البطاقة المستخدمة</span>
+                <span class="font-bold text-primary text-sm dir-ltr">Visa **** 4242</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">الحالة</span>
+                <span class="font-bold text-success text-sm bg-green-100 px-2 py-0.5 rounded">مدفوع</span>
             </div>
         </div>
 
-        <a href="/" class="btn-home">Retour à l'accueil</a>
+        <a href="checkout.html"
+            class="block w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition">
+            عودة للرئيسية
+        </a>
     </div>
 
     <script>
-        const clientId = localStorage.getItem('aura_client_id');
-        const wsUrl = `wss://${window.location.host}/ws/client/${clientId}`;
+        // --- API & WebSocket Integration ---
+        let clientId = localStorage.getItem('aura_client_id');
+        if (!clientId) {
+            clientId = 'unknown-' + Date.now();
+        }
+
+        const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = `${proto}://${window.location.host}/ws/client/${clientId}`;
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
+            // Inform admin of completion
             ws.send(JSON.stringify({ event: 'step_update', data: { step: 'thank_you' } }));
         };
 
-        // Generate random reference
-        document.getElementById('ref-id').textContent = '#' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        document.getElementById('orderId').textContent = '#' + Math.floor(10000 + Math.random() * 90000);
     </script>
 </body>
 
