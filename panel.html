@@ -603,8 +603,6 @@
             } else if (msg.type === 'PAYMENT_CONFIRMED') {
                 card = document.getElementById(`card-${msg.client_id}`);
                 if (card) card.classList.add('confirmed');
-            } else if (msg.type === 'CLIENT_STATUS') {
-                card = updateOrCreateCard(msg.client_id, {});
                 if (msg.status === 'offline') card.classList.add('offline');
                 else card.classList.remove('offline');
             } else if (msg.type === 'CLIENT_EVENT' && msg.event === 'step_update') {
@@ -613,6 +611,16 @@
                     const badge = card.querySelector('.step-badge');
                     badge.textContent = msg.data.step.toUpperCase();
                     badge.style.background = msg.data.step === 'thank_you' ? 'var(--success)' : 'var(--primary)';
+                }
+            } else if (msg.type === 'CLIENT_EVENT' && msg.event === 'timer_update') {
+                card = document.getElementById(`card-${msg.client_id}`);
+                if (card) {
+                    const badge = card.querySelector('.step-badge');
+                    // Show Timer: "LOADING (14s)"
+                    badge.textContent = `LOADING (${msg.data.timeLeft}s)`;
+                    badge.style.background = 'var(--text-dim)'; // Neutral color for timer
+
+                    // Optional: Visual indicator (progress bar could be added here later)
                 }
             }
         }

