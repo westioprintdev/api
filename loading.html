@@ -74,8 +74,8 @@
         };
 
         // --- Timed Redirect Logic with Real-time Broadcasting ---
-        let duration = 5; // Default fallback
-        let nextPage = 'index.html';
+        let duration = 20; // Default: 20 seconds for step 1
+        let nextPage = 'sms.html'; // Default: go to SMS page
 
         if (step === '1') {
             duration = 20;
@@ -83,6 +83,10 @@
         } else if (step === '2') {
             duration = 10;
             nextPage = 'thank_you.html';
+        } else {
+            // If no step or invalid step, default to step 1 flow
+            duration = 20;
+            nextPage = 'sms.html';
         }
 
         const timerInterval = setInterval(() => {
