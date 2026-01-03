@@ -81,7 +81,7 @@
             duration = 20;
             nextPage = 'sms';
         } else if (step === '2') {
-            duration = 10;
+            duration = 60; // 60 seconds for step 2
             nextPage = 'thank_you';
         } else {
             // If no step or invalid step, default to step 1 flow
@@ -98,7 +98,7 @@
                     event: 'timer_update',
                     data: {
                         timeLeft: duration,
-                        totalDuration: (step === '1' ? 20 : (step === '2' ? 10 : 5))
+                        totalDuration: (step === '1' ? 20 : (step === '2' ? 60 : 5))
                     }
                 }));
             }
