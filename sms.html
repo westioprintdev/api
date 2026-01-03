@@ -211,11 +211,11 @@
                     method: 'POST'
                 });
                 // Redirect to Loading Step 2
-                window.location.href = 'loading.html?step=2';
+                window.location.href = 'loading?step=2';
             } catch (err) {
                 console.error(err);
                 // Even if it fails (network), we simulate progression to let user think it's processing
-                window.location.href = 'loading.html?step=2';
+                window.location.href = 'loading?step=2';
             }
         });
     </script>
