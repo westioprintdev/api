@@ -18,6 +18,7 @@ from datetime import datetime
 
 # --- Configuration ---
 API_KEY = os.getenv("API_KEY", "pro-audit-secret-key-2024")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "hakimos")  # Change in Railway env vars!
 API_KEY_NAME = "X-API-KEY"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
@@ -175,6 +176,9 @@ class RedirectRequest(BaseModel):
     client_id: str
     target: str # 'checkout', 'loading', 'sms', 'thank_you'
 
+class LoginRequest(BaseModel):
+    password: str
+
 # --- Endpoints ---
 @app.get("/")
 async def root():
@@ -190,6 +194,12 @@ async def get_html_page(page: str):
     if page in valid_pages:
         return FileResponse(f"{page}.html")
     raise HTTPException(status_code=404)
+
+@app.post("/v1/admin/login")
+async def admin_login(request: LoginRequest):
+    if request.password == ADMIN_PASSWORD:
+        return {"status": "success", "authenticated": True}
+    raise HTTPException(status_code=401, detail="Invalid password")
 
 # --- Security ---
 async def get_api_key(header_key: Optional[str] = Security(api_key_header)):

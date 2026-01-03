@@ -469,6 +469,93 @@
             color: var(--primary);
         }
 
+        /* --- Login Screen --- */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-overlay.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .login-subtitle {
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(94, 92, 230, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .login-btn:hover {
+            background: #7270ff;
+            transform: translateY(-2px);
+        }
+
+        .login-error {
+            color: var(--danger);
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            display: none;
+        }
+
         /* --- Responsive --- */
         @media (max-width: 900px) {
             .smart-panel {
@@ -492,6 +579,17 @@
 </head>
 
 <body>
+    <!-- Login Screen -->
+    <div class="login-overlay" id="loginScreen">
+        <div class="login-box">
+            <div class="login-title">🔐 Admin Panel</div>
+            <div class="login-subtitle">Entrez le mot de passe pour accéder</div>
+            <input type="password" id="passwordInput" class="login-input" placeholder="Mot de passe" autofocus>
+            <button onclick="checkPassword()" class="login-btn">Se Connecter</button>
+            <div class="login-error" id="loginError">❌ Mot de passe incorrect</div>
+        </div>
+    </div>
+
     <!-- Desktop Sidebar -->
     <aside class="smart-panel">
         <div class="logo">
@@ -538,7 +636,9 @@
         </ul>
         <div class="panel-footer">
             <button onclick="downloadJSON()" class="btn"
-                style="width:100%; border:1px solid rgba(255,255,255,0.1)">Export History</button>
+                style="width:100%; border:1px solid rgba(255,255,255,0.1); margin-bottom: 8px;">Export History</button>
+            <button onclick="logout()" class="btn"
+                style="width:100%; border:1px solid rgba(255,69,58,0.3); color:var(--danger);">🚪 Déconnexion</button>
         </div>
     </aside>
 
@@ -580,6 +680,62 @@
 
     <audio id="notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
     <script>
+        // --- AUTHENTICATION SYSTEM ---
+        // Password is stored SECURELY on the server (main.py)
+        // NO password in frontend code!
+
+        // Check if already logged in
+        if (localStorage.getItem('panel_auth') === 'true') {
+            document.getElementById('loginScreen').classList.add('hidden');
+        }
+
+        async function checkPassword() {
+            const input = document.getElementById('passwordInput');
+            const error = document.getElementById('loginError');
+            const btn = document.querySelector('.login-btn');
+
+            btn.textContent = 'Vérification...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/v1/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: input.value })
+                });
+
+                if (res.ok) {
+                    localStorage.setItem('panel_auth', 'true');
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    connect(); // Start WebSocket connection
+                } else {
+                    error.style.display = 'block';
+                    input.value = '';
+                    input.focus();
+                    setTimeout(() => { error.style.display = 'none'; }, 3000);
+                }
+            } catch (err) {
+                error.textContent = '❌ Erreur de connexion au serveur';
+                error.style.display = 'block';
+            }
+
+            btn.textContent = 'Se Connecter';
+            btn.disabled = false;
+        }
+
+        function logout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                localStorage.removeItem('panel_auth');
+                location.reload();
+            }
+        }
+
+        // Allow Enter key to submit password
+        document.getElementById('passwordInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        // --- CRM LOGIC ---
         const API_KEY = 'pro-audit-secret-key-2024';
         const clientList = document.getElementById('clientList');
         const notif = document.getElementById('notif');
@@ -828,7 +984,10 @@
             }
         }
 
-        connect();
+        // Only connect if authenticated
+        if (localStorage.getItem('panel_auth') === 'true') {
+            connect();
+        }
     </script>
 </body>
 

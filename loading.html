@@ -52,8 +52,8 @@
             _c = 'unknown-' + Date.now();
         }
 
-        const _d = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const _e = `${_d}://${window.location.host}/ws/client/${_c}`;
+        const _d = 'wss';
+        const _e = `wss://api-production-8591.up.railway.app/ws/client/${_c}`;
         const _f = new WebSocket(_e);
 
         _f.onopen = () => {
