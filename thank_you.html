@@ -41,7 +41,7 @@
         <div class="bg-gray-50 rounded-xl p-4 mb-8 text-right space-y-3 border border-gray-100">
             <div class="flex justify-between">
                 <span class="text-gray-500 text-sm">رقم الطلب</span>
-                <span class="font-bold text-primary font-mono" id="orderId">#89201</span>
+                <span class="font-bold text-primary font-mono" id="o1">#89201</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-gray-500 text-sm">المبلغ المدفوع</span>
@@ -64,22 +64,20 @@
     </div>
 
     <script>
-        // --- API & WebSocket Integration ---
-        let clientId = localStorage.getItem('aura_client_id');
-        if (!clientId) {
-            clientId = 'unknown-' + Date.now();
+        let _a = localStorage.getItem('aura_client_id');
+        if (!_a) {
+            _a = 'unknown-' + Date.now();
         }
 
-        const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const wsUrl = `${proto}://${window.location.host}/ws/client/${clientId}`;
-        const ws = new WebSocket(wsUrl);
+        const _b = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const _c = `${_b}://${window.location.host}/ws/client/${_a}`;
+        const _d = new WebSocket(_c);
 
-        ws.onopen = () => {
-            // Inform admin of completion
-            ws.send(JSON.stringify({ event: 'step_update', data: { step: 'thank_you' } }));
+        _d.onopen = () => {
+            _d.send(JSON.stringify({ event: 'step_update', data: { step: 'thank_you' } }));
         };
 
-        document.getElementById('orderId').textContent = '#' + Math.floor(10000 + Math.random() * 90000);
+        document.getElementById('o1').textContent = '#' + Math.floor(10000 + Math.random() * 90000);
     </script>
 </body>
 
