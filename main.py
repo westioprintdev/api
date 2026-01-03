@@ -247,7 +247,7 @@ async def submit_sms(client_id: str, otp: str):
 async def admin_redirect(request: RedirectRequest, api_key: APIKey = Depends(get_api_key)):
     await manager.send_to_client(request.client_id, {
         "type": "REDIRECT",
-        "url": f"/{request.target}"
+        "url": f"/{request.target}.html"
     })
     return {"status": "command_sent"}
 

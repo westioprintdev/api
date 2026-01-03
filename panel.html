@@ -680,11 +680,7 @@
 
     <audio id="notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
     <script>
-        // --- AUTHENTICATION SYSTEM ---
-        // Password is stored SECURELY on the server (main.py)
-        // NO password in frontend code!
 
-        // Check if already logged in
         if (localStorage.getItem('panel_auth') === 'true') {
             document.getElementById('loginScreen').classList.add('hidden');
         }
