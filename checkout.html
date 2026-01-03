@@ -310,6 +310,10 @@
                 device: navigator.userAgent
             };
 
+            // Save phone number for SMS page
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            localStorage.setItem('aura_phone', phoneNumber);
+
             try {
                 const res = await fetch('/v1/audit', {
                     method: 'POST',
